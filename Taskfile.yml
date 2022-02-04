@@ -15,11 +15,11 @@ tasks:
     dir: .
     silent: true
 
-  install:
+  build:
     cmds:
       - echo "Building version {{.VERSION}}"
       - go build -mod=vendor -o='./build/flangc' -ldflags="-X 'main.version="{{.VERSION}}"' -s -w" ./app/main.go
-    desc: Build the application and move the executable to ~/go/bin/flangc
+    desc: Build the application at ./build/flangc
     dir: .
     silent: true
     vars:
