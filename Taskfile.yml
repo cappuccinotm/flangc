@@ -1,0 +1,27 @@
+version: '3'
+
+tasks:
+  lint:
+    cmds:
+      - golangci-lint run ./...
+    dir: .
+    desc: Run linters
+    silent: true
+
+  test:
+    cmds:
+      - go test ./... -count=1
+    desc: Run tests without caching
+    dir: .
+    silent: true
+
+  install:
+    cmds:
+      - echo "Building version {{.VERSION}}"
+      - go build -mod=vendor -o='./build/flangc' -ldflags="-X 'main.version="{{.VERSION}}"' -s -w" ./app/main.go
+    desc: Build the application and move the executable to ~/go/bin/flangc
+    dir: .
+    silent: true
+    vars:
+      VERSION:
+        sh: git describe --tags --long

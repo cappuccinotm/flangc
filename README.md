@@ -1,2 +1,2 @@
-# flangc
+# flangc [![Go](https://github.com/cappuccinotm/flangc/actions/workflows/.go.yaml/badge.svg)](https://github.com/cappuccinotm/flangc/actions/workflows/.go.yaml) [![codecov](https://codecov.io/gh/cappuccinotm/flangc/branch/master/graph/badge.svg?token=nLxLt9Vdyo)](https://codecov.io/gh/cappuccinotm/flangc) [![go report card](https://goreportcard.com/badge/github.com/cappuccinotm/flangc)](https://goreportcard.com/report/github.com/cappuccinotm/flangc) [![Go Reference](https://pkg.go.dev/badge/github.com/cappuccinotm/flangc.svg)](https://pkg.go.dev/github.com/cappuccinotm/flangc)
 Functional toy-language compiler for CC course
