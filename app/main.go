@@ -38,7 +38,7 @@ func main() {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
 			os.Exit(0)
 		} else {
-			fmt.Println("failed to run command: %v", err)
+			fmt.Printf("failed to run command: %v", err)
 			os.Exit(1)
 		}
 	}
