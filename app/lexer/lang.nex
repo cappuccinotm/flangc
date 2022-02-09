@@ -1,0 +1,34 @@
+/</                           { token.Kind = Less }
+/>/                           { token.Kind = Greater }
+/=/                           { token.Kind = Equal }
+/!=/                          { token.Kind = NotEqual }
+/\+/                          { token.Kind = Plus }
+/-/                           { token.Kind = Minus }
+/\*/                          { token.Kind = Multiply }
+/\//                          { token.Kind = Divide }
+/\(/                          { token.Kind = LBrace }
+/\)/                          { token.Kind = RBrace }
+/\+|-|\*|\/[0-9]+\.[0-9]*/    {
+  token.Kind = Number
+  token.Value, *err = strconv.ParseFloat(yylex.Text(), 64)
+}
+/null/                        { token.Kind = Null }
+/[a-z][a-z0-9]*/              {
+  token.Kind = Identifier
+  token.Value = yylex.Text()
+}
+/[ \t\n]+/                    { /* eat up whitespace */ }
+/./                           { *err = ErrUnrecognizedCharacter(yylex.Text()) }
+/{[^\{\}\n]*}/                { /* eat up one-line comments */ }
+//
+package lexer
+func NewAdapter(r io.Reader) *Adapter {
+  lex := NewLexer(r)
+  svc := &Adapter {
+    lexer: lex,
+    nextTokenFunc: func(token *Token, err *error) {
+      NN_FUN(lex)
+    },
+  }
+  return svc
+}

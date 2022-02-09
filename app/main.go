@@ -10,15 +10,18 @@ import (
 	"github.com/cappuccinotm/flangc/app/cmd"
 )
 
-var opts struct {
-	Build cmd.Build `command:"build"`
-	Debug bool      `long:"dbg" env:"DEBUG" description:"turn on debug mode"`
+// Options describes command line options for an application.
+type Options struct {
+	Run   cmd.Run `command:"run"`
+	Debug bool    `long:"dbg" env:"DEBUG" description:"turn on debug mode"`
 }
 
 var version = "unknown"
 
 func main() {
 	fmt.Printf("flangc, version: %s\n", version)
+
+	var opts Options
 
 	p := flags.NewParser(&opts, flags.Default)
 	p.CommandHandler = func(cmd flags.Commander, args []string) error {
@@ -35,6 +38,7 @@ func main() {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
 			os.Exit(0)
 		} else {
+			fmt.Println("failed to run command: %v", err)
 			os.Exit(1)
 		}
 	}

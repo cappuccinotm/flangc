@@ -1,0 +1,56 @@
+
+state 0
+	$accept: .CompoundName $end 
+
+	IDENTIFIER  shift 2
+	.  error
+
+	CompoundName  goto 1
+
+state 1
+	$accept:  CompoundName.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	CompoundName:  IDENTIFIER.    (1)
+
+	.  reduce 1 (src line 18)
+
+Rule not reduced: LeftPart:  CompoundName 
+Rule not reduced: Relation:  Expression 
+Rule not reduced: Relation:  Expression RelationalOperator Expression 
+Rule not reduced: RelationalOperator:  LESS 
+Rule not reduced: RelationalOperator:  GREATER 
+Rule not reduced: RelationalOperator:  EQUAL 
+Rule not reduced: RelationalOperator:  NOT_EQUAL 
+Rule not reduced: Expression:  Term Terms 
+Rule not reduced: Expression:  LBRACE Term Terms RBRACE 
+Rule not reduced: Expression:  LBRACE AddSign Term Terms RBRACE 
+Rule not reduced: AddSign:  PLUS 
+Rule not reduced: AddSign:  MINUS 
+Rule not reduced: Terms:  
+Rule not reduced: Terms:  AddSign Term Terms 
+Rule not reduced: Term:  Factor Factors 
+Rule not reduced: Factors:  
+Rule not reduced: Factors:  MultSign Factor Factors 
+Rule not reduced: MultSign:  MULTIPLY 
+Rule not reduced: MultSign:  DIVIDE 
+Rule not reduced: Factor:  NUMBER 
+Rule not reduced: Factor:  LeftPart 
+Rule not reduced: Factor:  NULL 
+
+16 terminals, 12 nonterminals
+24 grammar rules, 3/16000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+61 working sets used
+memory: parser 0/240000
+0 extra closures
+1 shift entries, 1 exceptions
+11 goto entries
+-10 entries saved by goto default
+Optimizer space used: output 2/240000
+2 table entries, 0 zero
+maximum spread: 13, maximum offset: 13

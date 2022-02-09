@@ -15,6 +15,23 @@ tasks:
     dir: .
     silent: true
 
+  genlex:
+    cmds:
+      - nex -o ./app/lexer/lexer.nn.temp.go -s ./app/lexer/lang.nex
+      - goimports ./app/lexer/lexer.nn.temp.go > ./app/lexer/lexer.imported.nn.temp.go
+      - gofmt ./app/lexer/lexer.imported.nn.temp.go  > ./app/lexer/lexer.nn.go
+      - rm ./app/lexer/lexer.nn.temp.go ./app/lexer/lexer.imported.nn.temp.go
+    desc: Generate lexer
+    dir: .
+    silent: true
+
+  genparser:
+    cmds:
+      - goyacc -p "parser" -o ./app/parser/parser.yacc.go ./app/parser/lang.y
+    desc: Generate parser
+    dir: .
+    silent: true
+
   build:
     cmds:
       - echo "Building version {{.VERSION}}"
