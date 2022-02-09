@@ -18,6 +18,7 @@ const (
 	Minus
 	Multiply
 	Divide
+	QuoteSign
 	LBrace
 	RBrace
 	Number

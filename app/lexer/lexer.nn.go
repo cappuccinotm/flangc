@@ -339,6 +339,24 @@ var dfas = []dfa{
 		},
 	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
 
+	// '
+	{[]bool{false, true}, []func(rune) int{ // Transitions
+		func(r rune) int {
+			switch r {
+			case 39:
+				return 1
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 39:
+				return -1
+			}
+			return -1
+		},
+	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
+
 	// \(
 	{[]bool{false, true}, []func(rune) int{ // Transitions
 		func(r rune) int {
@@ -800,34 +818,38 @@ func NewAdapter(r io.Reader) *Adapter {
 						}
 					case 8:
 						{
-							token.Kind = LBrace
+							token.Kind = QuoteSign
 						}
 					case 9:
 						{
-							token.Kind = RBrace
+							token.Kind = LBrace
 						}
 					case 10:
+						{
+							token.Kind = RBrace
+						}
+					case 11:
 						{
 							token.Kind = Number
 							token.Value, *err = strconv.ParseFloat(yylex.Text(), 64)
 						}
-					case 11:
+					case 12:
 						{
 							token.Kind = Null
 						}
-					case 12:
+					case 13:
 						{
 							token.Kind = Identifier
 							token.Value = yylex.Text()
 						}
-					case 13:
+					case 14:
 						{ /* eat up whitespace */
 						}
-					case 14:
+					case 15:
 						{
 							*err = ErrUnrecognizedCharacter(yylex.Text())
 						}
-					case 15:
+					case 16:
 						{ /* eat up one-line comments */
 						}
 					default:

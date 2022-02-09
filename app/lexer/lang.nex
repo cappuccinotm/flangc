@@ -6,6 +6,7 @@
 /-/                           { token.Kind = Minus }
 /\*/                          { token.Kind = Multiply }
 /\//                          { token.Kind = Divide }
+/'/                           { token.Kind = QuoteSign }
 /\(/                          { token.Kind = LBrace }
 /\)/                          { token.Kind = RBrace }
 /\+|-|\*|\/[0-9]+\.[0-9]*/    {
