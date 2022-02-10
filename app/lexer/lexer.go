@@ -10,15 +10,9 @@ type TokenKind int
 
 // Supported token kinds.
 const (
-	Less TokenKind = iota
-	Greater
-	Equal
-	NotEqual
-	Plus
-	Minus
-	Multiply
-	Divide
-	QuoteSign
+	undefined TokenKind = -100
+	SQuote    TokenKind = -1 + iota
+	Quote
 	LBrace
 	RBrace
 	Number
@@ -41,41 +35,27 @@ type Adapter struct {
 
 // NextToken returns the next token in the source code.
 func (a *Adapter) NextToken(lvl int) (Token, error) {
-	var token Token
+	token := Token{Kind: undefined, Value: nil}
 	var err error
-	switch a.lexer.next(lvl) {
-	case 0:
-		token.Kind = Less
-	case 1:
-		token.Kind = Greater
-	case 2:
-		token.Kind = Equal
-	case 3:
-		token.Kind = NotEqual
-	case 4:
-		token.Kind = Plus
-	case 5:
-		token.Kind = Minus
-	case 6:
-		token.Kind = Multiply
-	case 7:
-		token.Kind = Divide
-	case 8:
-		token.Kind = LBrace
-	case 9:
-		token.Kind = RBrace
-	case 10:
-		token.Kind = Number
-		token.Value, err = strconv.ParseFloat(a.lexer.Text(), 64)
-	case 11:
-		token.Kind = Null
-	case 12:
-		token.Kind = Identifier
-		token.Value = a.lexer.Text()
-	case 13: /* eat up whitespace */
-	case 14:
-		err = ErrUnrecognizedCharacter(a.lexer.Text())
-	case 15: /* eat up one-line comments */
+	for token.Kind == undefined && err == nil {
+		switch TokenKind(a.lexer.next(lvl)) {
+		case SQuote:
+			token.Kind = SQuote
+		case Quote:
+			token.Kind = Quote
+		case LBrace:
+			token.Kind = LBrace
+		case RBrace:
+			token.Kind = RBrace
+		case Number:
+			token.Kind = Number
+			token.Value, err = strconv.ParseFloat(a.lexer.Text(), 64)
+		//case 4:
+		//token.Kind = Null
+		case Identifier:
+			token.Kind = Identifier
+			token.Value = a.lexer.Text()
+		}
 	}
 	if err != nil {
 		return Token{}, fmt.Errorf("unrecognized token %q at %d: %w", a.lexer.Text(), a.lexer.Line(), err)

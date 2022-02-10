@@ -25,8 +25,8 @@ func NewParser(lexer *lexer.Adapter) *Parser {
 
 // NextExpression returns the next expression in the sequence
 func (p *Parser) NextExpression() (Expression, error) {
-	p.parser.Parse(p.lexer)
-	return nil, nil
+	code := p.parser.Parse(p.lexer)
+	return code, nil
 }
 
 // ErrUnexpectedToken shows that the token, got from the lexer
@@ -48,26 +48,12 @@ func (l *lexAdapter) Lex(lval *parserSymType) int {
 		return 0
 	}
 	switch tkn.Kind {
-	case lexer.Less:
-		return LESS
-	case lexer.Greater:
-		return GREATER
-	case lexer.Equal:
-		return EQUAL
-	case lexer.NotEqual:
-		return NOT_EQUAL
-	case lexer.Plus:
-		return PLUS
-	case lexer.Minus:
-		return MINUS
-	case lexer.Multiply:
-		return MULTIPLY
-	case lexer.Divide:
-		return DIVIDE
 	case lexer.Number:
 		return NUMBER
-	case lexer.Null:
-		return NULL
+	case lexer.Quote:
+		return QUOTE
+	case lexer.SQuote:
+		return SQUOTE
 	case lexer.Identifier:
 		return IDENTIFIER
 	case lexer.LBrace:

@@ -182,163 +182,6 @@ type dfa struct {
 }
 
 var dfas = []dfa{
-	// <
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 60:
-				return 1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 60:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
-	// >
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 62:
-				return 1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 62:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
-	// =
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 61:
-				return 1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 61:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
-	// !=
-	{[]bool{false, false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 33:
-				return 1
-			case 61:
-				return -1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 33:
-				return -1
-			case 61:
-				return 2
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 33:
-				return -1
-			case 61:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1, -1}, []int{ /* End-of-input transitions */ -1, -1, -1}, nil},
-
-	// \+
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 43:
-				return 1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 43:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
-	// -
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 45:
-				return 1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 45:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
-	// \*
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 42:
-				return 1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 42:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
-	// \/
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			switch r {
-			case 47:
-				return 1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 47:
-				return -1
-			}
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
 	// '
 	{[]bool{false, true}, []func(rune) int{ // Transitions
 		func(r rune) int {
@@ -356,6 +199,100 @@ var dfas = []dfa{
 			return -1
 		},
 	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
+
+	// quote
+	{[]bool{false, false, false, false, false, true}, []func(rune) int{ // Transitions
+		func(r rune) int {
+			switch r {
+			case 101:
+				return -1
+			case 111:
+				return -1
+			case 113:
+				return 1
+			case 116:
+				return -1
+			case 117:
+				return -1
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 101:
+				return -1
+			case 111:
+				return -1
+			case 113:
+				return -1
+			case 116:
+				return -1
+			case 117:
+				return 2
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 101:
+				return -1
+			case 111:
+				return 3
+			case 113:
+				return -1
+			case 116:
+				return -1
+			case 117:
+				return -1
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 101:
+				return -1
+			case 111:
+				return -1
+			case 113:
+				return -1
+			case 116:
+				return 4
+			case 117:
+				return -1
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 101:
+				return 5
+			case 111:
+				return -1
+			case 113:
+				return -1
+			case 116:
+				return -1
+			case 117:
+				return -1
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 101:
+				return -1
+			case 111:
+				return -1
+			case 113:
+				return -1
+			case 116:
+				return -1
+			case 117:
+				return -1
+			}
+			return -1
+		},
+	}, []int{ /* Start-of-input transitions */ -1, -1, -1, -1, -1, -1}, []int{ /* End-of-input transitions */ -1, -1, -1, -1, -1, -1}, nil},
 
 	// \(
 	{[]bool{false, true}, []func(rune) int{ // Transitions
@@ -393,133 +330,60 @@ var dfas = []dfa{
 		},
 	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
 
-	// \+|-|\*|\/[0-9]+\.[0-9]*
-	{[]bool{false, true, true, true, false, false, true, true}, []func(rune) int{ // Transitions
+	// ((\+|-)?([0-9]+)(\.[0-9]+)?)|((\+|-)?\.?[0-9]+)
+	{[]bool{false, false, false, false, true, false, true, true}, []func(rune) int{ // Transitions
 		func(r rune) int {
 			switch r {
-			case 42:
-				return 1
 			case 43:
-				return 2
+				return 1
 			case 45:
-				return 3
+				return 2
 			case 46:
-				return -1
-			case 47:
+				return 3
+			}
+			switch {
+			case 48 <= r && r <= 57:
 				return 4
 			}
-			switch {
-			case 48 <= r && r <= 57:
-				return -1
-			}
 			return -1
 		},
 		func(r rune) int {
 			switch r {
-			case 42:
-				return -1
 			case 43:
 				return -1
 			case 45:
 				return -1
 			case 46:
-				return -1
-			case 47:
-				return -1
+				return 3
 			}
 			switch {
 			case 48 <= r && r <= 57:
-				return -1
+				return 4
 			}
 			return -1
 		},
 		func(r rune) int {
 			switch r {
-			case 42:
-				return -1
 			case 43:
 				return -1
 			case 45:
 				return -1
 			case 46:
-				return -1
-			case 47:
-				return -1
+				return 3
 			}
 			switch {
 			case 48 <= r && r <= 57:
-				return -1
+				return 4
 			}
 			return -1
 		},
 		func(r rune) int {
 			switch r {
-			case 42:
-				return -1
 			case 43:
 				return -1
 			case 45:
 				return -1
 			case 46:
-				return -1
-			case 47:
-				return -1
-			}
-			switch {
-			case 48 <= r && r <= 57:
-				return -1
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 42:
-				return -1
-			case 43:
-				return -1
-			case 45:
-				return -1
-			case 46:
-				return -1
-			case 47:
-				return -1
-			}
-			switch {
-			case 48 <= r && r <= 57:
-				return 5
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 42:
-				return -1
-			case 43:
-				return -1
-			case 45:
-				return -1
-			case 46:
-				return 6
-			case 47:
-				return -1
-			}
-			switch {
-			case 48 <= r && r <= 57:
-				return 5
-			}
-			return -1
-		},
-		func(r rune) int {
-			switch r {
-			case 42:
-				return -1
-			case 43:
-				return -1
-			case 45:
-				return -1
-			case 46:
-				return -1
-			case 47:
 				return -1
 			}
 			switch {
@@ -530,15 +394,56 @@ var dfas = []dfa{
 		},
 		func(r rune) int {
 			switch r {
-			case 42:
+			case 43:
 				return -1
+			case 45:
+				return -1
+			case 46:
+				return 5
+			}
+			switch {
+			case 48 <= r && r <= 57:
+				return 4
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
 			case 43:
 				return -1
 			case 45:
 				return -1
 			case 46:
 				return -1
-			case 47:
+			}
+			switch {
+			case 48 <= r && r <= 57:
+				return 6
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 43:
+				return -1
+			case 45:
+				return -1
+			case 46:
+				return -1
+			}
+			switch {
+			case 48 <= r && r <= 57:
+				return 6
+			}
+			return -1
+		},
+		func(r rune) int {
+			switch r {
+			case 43:
+				return -1
+			case 45:
+				return -1
+			case 46:
 				return -1
 			}
 			switch {
@@ -665,16 +570,6 @@ var dfas = []dfa{
 		},
 	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
 
-	// .
-	{[]bool{false, true}, []func(rune) int{ // Transitions
-		func(r rune) int {
-			return 1
-		},
-		func(r rune) int {
-			return -1
-		},
-	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
-
 	// {[^\{\}\n]*}
 	{[]bool{false, false, true, false}, []func(rune) int{ // Transitions
 		func(r rune) int {
@@ -722,6 +617,16 @@ var dfas = []dfa{
 			return 3
 		},
 	}, []int{ /* Start-of-input transitions */ -1, -1, -1, -1}, []int{ /* End-of-input transitions */ -1, -1, -1, -1}, nil},
+
+	// .
+	{[]bool{false, true}, []func(rune) int{ // Transitions
+		func(r rune) int {
+			return 1
+		},
+		func(r rune) int {
+			return -1
+		},
+	}, []int{ /* Start-of-input transitions */ -1, -1}, []int{ /* End-of-input transitions */ -1, -1}, nil},
 }
 
 func NewLexer(in io.Reader) *Lexer {
@@ -786,71 +691,43 @@ func NewAdapter(r io.Reader) *Adapter {
 					switch yylex.next(0) {
 					case 0:
 						{
-							token.Kind = Less
+							token.Kind = SQuote /* 0 */
 						}
 					case 1:
 						{
-							token.Kind = Greater
+							token.Kind = Quote /* 1 */
 						}
 					case 2:
 						{
-							token.Kind = Equal
+							token.Kind = LBrace /* 2 */
 						}
 					case 3:
 						{
-							token.Kind = NotEqual
+							token.Kind = RBrace /* 3 */
 						}
 					case 4:
 						{
-							token.Kind = Plus
+							token.Kind = Number
+							token.Value, *err = strconv.ParseFloat(yylex.Text(), 64) /* 4 */
 						}
 					case 5:
 						{
-							token.Kind = Minus
+							token.Kind = Null /* 5 */
 						}
 					case 6:
 						{
-							token.Kind = Multiply
+							token.Kind = Identifier
+							token.Value = yylex.Text() /* 6 */
 						}
 					case 7:
-						{
-							token.Kind = Divide
+						{ /* eat up whitespace */ /* 7 */
 						}
 					case 8:
-						{
-							token.Kind = QuoteSign
+						{ /* eat up one-line comments */ /* 8 */
 						}
 					case 9:
 						{
-							token.Kind = LBrace
-						}
-					case 10:
-						{
-							token.Kind = RBrace
-						}
-					case 11:
-						{
-							token.Kind = Number
-							token.Value, *err = strconv.ParseFloat(yylex.Text(), 64)
-						}
-					case 12:
-						{
-							token.Kind = Null
-						}
-					case 13:
-						{
-							token.Kind = Identifier
-							token.Value = yylex.Text()
-						}
-					case 14:
-						{ /* eat up whitespace */
-						}
-					case 15:
-						{
-							*err = ErrUnrecognizedCharacter(yylex.Text())
-						}
-					case 16:
-						{ /* eat up one-line comments */
+							*err = ErrUnrecognizedCharacter(yylex.Text()) /* 9 */
 						}
 					default:
 						break OUTER0

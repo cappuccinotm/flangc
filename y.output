@@ -1,56 +1,192 @@
 
 state 0
-	$accept: .CompoundName $end 
+	$accept: .Expression $end 
 
-	IDENTIFIER  shift 2
+	LBRACE  shift 2
 	.  error
 
-	CompoundName  goto 1
+	Expression  goto 1
 
 state 1
-	$accept:  CompoundName.$end 
+	$accept:  Expression.$end 
 
 	$end  accept
 	.  error
 
 
 state 2
-	CompoundName:  IDENTIFIER.    (1)
+	Expression:  LBRACE.Term Terms RBRACE 
 
-	.  reduce 1 (src line 18)
+	SQUOTE  shift 9
+	LBRACE  shift 8
+	NUMBER  shift 5
+	IDENTIFIER  shift 4
+	.  error
 
-Rule not reduced: LeftPart:  CompoundName 
-Rule not reduced: Relation:  Expression 
-Rule not reduced: Relation:  Expression RelationalOperator Expression 
-Rule not reduced: RelationalOperator:  LESS 
-Rule not reduced: RelationalOperator:  GREATER 
-Rule not reduced: RelationalOperator:  EQUAL 
-Rule not reduced: RelationalOperator:  NOT_EQUAL 
-Rule not reduced: Expression:  Term Terms 
-Rule not reduced: Expression:  LBRACE Term Terms RBRACE 
-Rule not reduced: Expression:  LBRACE AddSign Term Terms RBRACE 
-Rule not reduced: AddSign:  PLUS 
-Rule not reduced: AddSign:  MINUS 
-Rule not reduced: Terms:  
-Rule not reduced: Terms:  AddSign Term Terms 
-Rule not reduced: Term:  Factor Factors 
-Rule not reduced: Factors:  
-Rule not reduced: Factors:  MultSign Factor Factors 
-Rule not reduced: MultSign:  MULTIPLY 
-Rule not reduced: MultSign:  DIVIDE 
-Rule not reduced: Factor:  NUMBER 
-Rule not reduced: Factor:  LeftPart 
-Rule not reduced: Factor:  NULL 
+	Expression  goto 6
+	Term  goto 3
+	List  goto 7
 
-16 terminals, 12 nonterminals
-24 grammar rules, 3/16000 states
+state 3
+	Expression:  LBRACE Term.Terms RBRACE 
+	Terms: .    (2)
+
+	SQUOTE  shift 9
+	LBRACE  shift 8
+	NUMBER  shift 5
+	IDENTIFIER  shift 4
+	.  reduce 2 (src line 23)
+
+	Expression  goto 6
+	Term  goto 11
+	Terms  goto 10
+	List  goto 7
+
+state 4
+	Term:  IDENTIFIER.    (4)
+
+	.  reduce 4 (src line 28)
+
+
+state 5
+	Term:  NUMBER.    (5)
+
+	.  reduce 5 (src line 29)
+
+
+state 6
+	Term:  Expression.    (6)
+
+	.  reduce 6 (src line 29)
+
+
+state 7
+	Term:  List.    (7)
+
+	.  reduce 7 (src line 29)
+
+
+state 8
+	Expression:  LBRACE.Term Terms RBRACE 
+	List:  LBRACE.QUOTE Terms RBRACE 
+
+	QUOTE  shift 12
+	SQUOTE  shift 9
+	LBRACE  shift 8
+	NUMBER  shift 5
+	IDENTIFIER  shift 4
+	.  error
+
+	Expression  goto 6
+	Term  goto 3
+	List  goto 7
+
+state 9
+	List:  SQUOTE.LBRACE Terms RBRACE 
+
+	LBRACE  shift 13
+	.  error
+
+
+state 10
+	Expression:  LBRACE Term Terms.RBRACE 
+
+	RBRACE  shift 14
+	.  error
+
+
+state 11
+	Terms:  Term.Terms 
+	Terms: .    (2)
+
+	SQUOTE  shift 9
+	LBRACE  shift 8
+	NUMBER  shift 5
+	IDENTIFIER  shift 4
+	.  reduce 2 (src line 23)
+
+	Expression  goto 6
+	Term  goto 11
+	Terms  goto 15
+	List  goto 7
+
+state 12
+	List:  LBRACE QUOTE.Terms RBRACE 
+	Terms: .    (2)
+
+	SQUOTE  shift 9
+	LBRACE  shift 8
+	NUMBER  shift 5
+	IDENTIFIER  shift 4
+	.  reduce 2 (src line 23)
+
+	Expression  goto 6
+	Term  goto 11
+	Terms  goto 16
+	List  goto 7
+
+state 13
+	List:  SQUOTE LBRACE.Terms RBRACE 
+	Terms: .    (2)
+
+	SQUOTE  shift 9
+	LBRACE  shift 8
+	NUMBER  shift 5
+	IDENTIFIER  shift 4
+	.  reduce 2 (src line 23)
+
+	Expression  goto 6
+	Term  goto 11
+	Terms  goto 17
+	List  goto 7
+
+state 14
+	Expression:  LBRACE Term Terms RBRACE.    (1)
+
+	.  reduce 1 (src line 19)
+
+
+state 15
+	Terms:  Term Terms.    (3)
+
+	.  reduce 3 (src line 25)
+
+
+state 16
+	List:  LBRACE QUOTE Terms.RBRACE 
+
+	RBRACE  shift 18
+	.  error
+
+
+state 17
+	List:  SQUOTE LBRACE Terms.RBRACE 
+
+	RBRACE  shift 19
+	.  error
+
+
+state 18
+	List:  LBRACE QUOTE Terms RBRACE.    (8)
+
+	.  reduce 8 (src line 32)
+
+
+state 19
+	List:  SQUOTE LBRACE Terms RBRACE.    (9)
+
+	.  reduce 9 (src line 34)
+
+
+9 terminals, 5 nonterminals
+10 grammar rules, 20/16000 states
 0 shift/reduce, 0 reduce/reduce conflicts reported
-61 working sets used
-memory: parser 0/240000
-0 extra closures
-1 shift entries, 1 exceptions
-11 goto entries
--10 entries saved by goto default
-Optimizer space used: output 2/240000
-2 table entries, 0 zero
-maximum spread: 13, maximum offset: 13
+54 working sets used
+memory: parser 20/240000
+3 extra closures
+30 shift entries, 1 exceptions
+10 goto entries
+13 entries saved by goto default
+Optimizer space used: output 25/240000
+25 table entries, 1 zero
+maximum spread: 9, maximum offset: 13

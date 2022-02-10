@@ -1,26 +1,19 @@
-/</                           { token.Kind = Less }
-/>/                           { token.Kind = Greater }
-/=/                           { token.Kind = Equal }
-/!=/                          { token.Kind = NotEqual }
-/\+/                          { token.Kind = Plus }
-/-/                           { token.Kind = Minus }
-/\*/                          { token.Kind = Multiply }
-/\//                          { token.Kind = Divide }
-/'/                           { token.Kind = QuoteSign }
-/\(/                          { token.Kind = LBrace }
-/\)/                          { token.Kind = RBrace }
-/\+|-|\*|\/[0-9]+\.[0-9]*/    {
+/'/                            { token.Kind = SQuote                           /* 0 */}
+/quote/                        { token.Kind = Quote                            /* 1 */}
+/\(/                           { token.Kind = LBrace                           /* 2 */}
+/\)/                           { token.Kind = RBrace                           /* 3 */}
+/((\+|-)?([0-9]+)(\.[0-9]+)?)|((\+|-)?\.?[0-9]+)/    {
   token.Kind = Number
-  token.Value, *err = strconv.ParseFloat(yylex.Text(), 64)
+  token.Value, *err = strconv.ParseFloat(yylex.Text(), 64)                    /* 4 */
 }
-/null/                        { token.Kind = Null }
-/[a-z][a-z0-9]*/              {
+/null/                         { token.Kind = Null                             /* 5 */}
+/[a-z][a-z0-9]*/               {
   token.Kind = Identifier
-  token.Value = yylex.Text()
+  token.Value = yylex.Text()                                                  /* 6 */
 }
-/[ \t\n]+/                    { /* eat up whitespace */ }
-/./                           { *err = ErrUnrecognizedCharacter(yylex.Text()) }
-/{[^\{\}\n]*}/                { /* eat up one-line comments */ }
+/[ \t\n]+/                     { /* eat up whitespace */                       /* 7 */}
+/\/\/[^\n\r]+?(?:\*\)|[\n\r])/ { /* eat up one-line comments */                /* 8 */}
+/./                            { *err = ErrUnrecognizedCharacter(yylex.Text()) /* 9 */}
 //
 package lexer
 func NewAdapter(r io.Reader) *Adapter {

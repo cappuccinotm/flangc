@@ -13,37 +13,23 @@ type parserSymType struct {
 	yys int
 }
 
-const LESS = 57346
-const GREATER = 57347
-const EQUAL = 57348
-const NOT_EQUAL = 57349
-const PLUS = 57350
-const MINUS = 57351
-const MULTIPLY = 57352
-const DIVIDE = 57353
-const NUMBER = 57354
-const IDENTIFIER = 57355
-const NULL = 57356
-const LBRACE = 57357
-const RBRACE = 57358
+const QUOTE = 57346
+const SQUOTE = 57347
+const LBRACE = 57348
+const RBRACE = 57349
+const NUMBER = 57350
+const IDENTIFIER = 57351
 
 var parserToknames = [...]string{
 	"$end",
 	"error",
 	"$unk",
-	"LESS",
-	"GREATER",
-	"EQUAL",
-	"NOT_EQUAL",
-	"PLUS",
-	"MINUS",
-	"MULTIPLY",
-	"DIVIDE",
-	"NUMBER",
-	"IDENTIFIER",
-	"NULL",
+	"QUOTE",
+	"SQUOTE",
 	"LBRACE",
 	"RBRACE",
+	"NUMBER",
+	"IDENTIFIER",
 }
 
 var parserStatenames = [...]string{}
@@ -52,7 +38,7 @@ const parserEofCode = 1
 const parserErrCode = 2
 const parserInitialStackSize = 16
 
-//line ./app/parser/lang.y:71
+//line ./app/parser/lang.y:37
 
 //line yacctab:1
 var parserExca = [...]int{
@@ -63,39 +49,39 @@ var parserExca = [...]int{
 
 const parserPrivate = 57344
 
-const parserLast = 2
+const parserLast = 25
 
 var parserAct = [...]int{
-	2, 1,
+	10, 12, 9, 8, 13, 5, 4, 9, 8, 2,
+	5, 4, 15, 16, 17, 11, 19, 18, 3, 14,
+	6, 1, 7, 0, 3,
 }
 
 var parserPact = [...]int{
-	-13, -1000, -1000,
+	3, -1000, 2, 2, -1000, -1000, -1000, -1000, -3, -2,
+	12, 2, 2, 2, -1000, -1000, 10, 9, -1000, -1000,
 }
 
 var parserPgo = [...]int{
-	0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1,
+	0, 20, 15, 0, 22,
 }
 
 var parserR1 = [...]int{
-	0, 1, 2, 3, 3, 5, 5, 5, 5, 4,
-	4, 4, 8, 8, 7, 7, 6, 10, 10, 11,
-	11, 9, 9, 9,
+	0, 1, 3, 3, 2, 2, 2, 2, 4, 4,
 }
 
 var parserR2 = [...]int{
-	0, 1, 1, 1, 3, 1, 1, 1, 1, 2,
-	4, 5, 1, 1, 0, 3, 2, 0, 3, 1,
-	1, 1, 1, 1,
+	0, 4, 0, 2, 1, 1, 1, 1, 4, 4,
 }
 
 var parserChk = [...]int{
-	-1000, -1, 13,
+	-1000, -1, 6, -2, 9, 8, -1, -4, 6, 5,
+	-3, -2, 4, 6, 7, -3, -3, -3, 7, 7,
 }
 
 var parserDef = [...]int{
-	0, -2, 1,
+	0, -2, 0, 2, 4, 5, 6, 7, 0, 0,
+	0, 2, 2, 2, 1, 3, 0, 0, 8, 9,
 }
 
 var parserTok1 = [...]int{
@@ -103,8 +89,7 @@ var parserTok1 = [...]int{
 }
 
 var parserTok2 = [...]int{
-	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-	12, 13, 14, 15, 16,
+	2, 3, 4, 5, 6, 7, 8, 9,
 }
 
 var parserTok3 = [...]int{
