@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"github.com/cappuccinotm/flangc/app/parser"
+	"io"
+	"errors"
 )
 
 // Run command builds the program at the specified path.
@@ -21,29 +23,20 @@ func (b Run) Execute(_ []string) error {
 	}
 
 	lex := lexer.NewLexer(f)
-	//var tkn lexer.Token
-	//for err == nil {
-	//	if tkn, err = lex.NextToken(); errors.Is(err, io.EOF) {
-	//		err = nil
-	//		break
-	//	} else if err != nil {
-	//		return fmt.Errorf("next token: %w", err)
-	//	}
-	//	log.Printf("[INFO] received token: %s", tkn)
-	//}
 
-	expr, err := parser.New(lex).Parse()
-	if err != nil {
-		return fmt.Errorf("parse: %w", err)
+	p := parser.New(lex)
+
+	for {
+		expr, err := p.Parse()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("parse: %w", err)
+		}
+
+		log.Printf("[INFO] parsed expression: %s", expr)
 	}
-
-	log.Printf("[INFO] parsed expression: %s", expr)
-
-	if expr, err = parser.New(lex).Parse(); err != nil {
-		return fmt.Errorf("parse: %w", err)
-	}
-
-	log.Printf("[INFO] parsed expression: %s", expr)
 
 	log.Printf("[INFO] built without errors")
 

@@ -9,25 +9,27 @@ import (
 // Lexer reads tokens from an input stream.
 type Lexer struct {
 	rd           *bufio.Reader
-	currentLine  int
+	cursor       Cursor
 	readComments bool
-	lastToken    Token
-	useLastToken bool
+	lastToken    struct {
+		value Token
+		use   bool
+	}
 }
 
 // NewLexer creates a new Lexer.
 func NewLexer(rd io.Reader) *Lexer {
 	return &Lexer{
-		rd:          bufio.NewReader(rd),
-		currentLine: 1,
+		rd:     bufio.NewReader(rd),
+		cursor: Cursor{Line: 1, Col: 1},
 	}
 }
 
 // NextToken returns the next token from the input stream.
 func (l *Lexer) NextToken() (Token, error) {
-	if l.useLastToken {
-		l.useLastToken = false
-		return l.lastToken, nil
+	if l.lastToken.use {
+		l.lastToken.use = false
+		return l.lastToken.value, nil
 	}
 
 	var (
@@ -36,11 +38,8 @@ func (l *Lexer) NextToken() (Token, error) {
 	)
 
 	for r == ' ' || r == '\n' || r == '\t' {
-		if r, _, err = l.rd.ReadRune(); err != nil {
+		if r, _, err = l.readRune(); err != nil {
 			return Token{}, fmt.Errorf("read next symbol: %w", err)
-		}
-		if r == '\n' {
-			l.currentLine++
 		}
 	}
 
@@ -58,25 +57,26 @@ func (l *Lexer) NextToken() (Token, error) {
 	case r == '_', isLetter(r):
 		tkn = l.readIdentifier(r)
 	case r == '/':
-		if l.readComments {
-			tkn = l.readComment(r)
+		tkn = l.readComment(r)
+		if !l.readComments {
+			if tkn, err = l.NextToken(); err != nil {
+				return Token{}, err
+			}
 		}
-		l.currentLine++
-		return l.NextToken()
 	default:
 		return Token{}, fmt.Errorf("unexpected symbol: %c", r)
 	}
 
-	l.lastToken = tkn
+	l.lastToken.value = tkn
 
 	return tkn, nil
 }
 
 func (l *Lexer) UnreadToken() {
-	if l.useLastToken {
+	if l.lastToken.use {
 		panic("unread token twice")
 	}
-	l.useLastToken = true
+	l.lastToken.use = true
 }
 
 func (l *Lexer) readIdentifier(r rune) Token {
@@ -84,7 +84,7 @@ func (l *Lexer) readIdentifier(r rune) Token {
 	*sb = append(*sb, r)
 
 	for {
-		r, _, err := l.rd.ReadRune()
+		r, _, err := l.readRune()
 		if err != nil {
 			return Token{Type: Identifier, Value: string(*sb)}
 		}
@@ -103,7 +103,7 @@ func (l *Lexer) readNumber(r rune) Token {
 	*sb = append(*sb, r)
 
 	for {
-		r, _, err := l.rd.ReadRune()
+		r, _, err := l.readRune()
 		if err != nil {
 			return Token{Type: Number, Value: string(*sb)}
 		}
@@ -122,7 +122,7 @@ func (l *Lexer) readComment(r rune) Token {
 	*sb = append(*sb, r)
 
 	for {
-		r, _, err := l.rd.ReadRune()
+		r, _, err := l.readRune()
 		if err != nil || r == '\n' {
 			return Token{Type: Comment, Value: string(*sb)}
 		}
@@ -131,8 +131,31 @@ func (l *Lexer) readComment(r rune) Token {
 	}
 }
 
-func (l *Lexer) Line() int {
-	return l.currentLine
+func (l *Lexer) Cursor() Cursor {
+	return l.cursor
+}
+
+func (l *Lexer) readRune() (r rune, size int, err error) {
+	if r, size, err = l.rd.ReadRune(); err != nil {
+		return
+	}
+
+	l.cursor.Col++
+
+	if r == '\n' {
+		l.cursor.Col = 0
+		l.cursor.Line++
+	}
+
+	return
+}
+
+type Cursor struct {
+	Line, Col int
+}
+
+func (c Cursor) String() string {
+	return fmt.Sprintf("%d:%d", c.Line, c.Col)
 }
 
 func isDigit(r rune) bool {

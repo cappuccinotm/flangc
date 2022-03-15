@@ -15,3 +15,10 @@ type Token struct {
 	Type  TokenType
 	Value string
 }
+
+func (t Token) String() string {
+	if t.Value == "" {
+		return string(t.Type)
+	}
+	return "(" + string(t.Type) + ": " + t.Value + ")"
+}
