@@ -4,8 +4,8 @@ import (
 	"github.com/cappuccinotm/flangc/app/lexer"
 	"os"
 	"fmt"
-	"github.com/cappuccinotm/flangc/app/parser"
 	"log"
+	"github.com/cappuccinotm/flangc/app/parser"
 )
 
 // Run command builds the program at the specified path.
@@ -20,23 +20,30 @@ func (b Run) Execute(_ []string) error {
 		return fmt.Errorf("open file: %w", err)
 	}
 
-	lex := lexer.NewAdapter(f)
-	p := parser.NewParser(lex)
-	var code parser.Expression
+	lex := lexer.NewLexer(f)
+	//var tkn lexer.Token
+	//for err == nil {
+	//	if tkn, err = lex.NextToken(); errors.Is(err, io.EOF) {
+	//		err = nil
+	//		break
+	//	} else if err != nil {
+	//		return fmt.Errorf("next token: %w", err)
+	//	}
+	//	log.Printf("[INFO] received token: %s", tkn)
+	//}
 
-	defer func() {
-		if rvr := recover(); rvr != nil {
-			log.Printf("[INFO] received one error: %v", rvr)
-		}
-	}()
-
-	for ; err == nil; code, err = p.NextExpression() {
-		log.Printf("[INFO] received code from parser %d", code)
-	}
-
+	expr, err := parser.New(lex).Parse()
 	if err != nil {
-		return fmt.Errorf("parse next expression: %w", err)
+		return fmt.Errorf("parse: %w", err)
 	}
+
+	log.Printf("[INFO] parsed expression: %s", expr)
+
+	if expr, err = parser.New(lex).Parse(); err != nil {
+		return fmt.Errorf("parse: %w", err)
+	}
+
+	log.Printf("[INFO] parsed expression: %s", expr)
 
 	log.Printf("[INFO] built without errors")
 

@@ -1,72 +1,144 @@
 package lexer
 
 import (
+	"bufio"
 	"fmt"
-	"strconv"
+	"io"
 )
 
-// TokenKind represents the type of the token.
-type TokenKind int
-
-// Supported token kinds.
-const (
-	undefined TokenKind = -100
-	SQuote    TokenKind = -1 + iota
-	Quote
-	LBrace
-	RBrace
-	Number
-	Null
-	Identifier
-)
-
-// Token represents a basic token.
-type Token struct {
-	Kind  TokenKind
-	Value interface{}
+// Lexer reads tokens from an input stream.
+type Lexer struct {
+	rd           *bufio.Reader
+	currentLine  int
+	readComments bool
+	lastToken    Token
+	useLastToken bool
 }
 
-// Adapter adapts the generated lexer's tokens into the
-// internal token representation.
-type Adapter struct {
-	lexer         *Lexer
-	nextTokenFunc func(*Token, *error)
+// NewLexer creates a new Lexer.
+func NewLexer(rd io.Reader) *Lexer {
+	return &Lexer{
+		rd:          bufio.NewReader(rd),
+		currentLine: 1,
+	}
 }
 
-// NextToken returns the next token in the source code.
-func (a *Adapter) NextToken(lvl int) (Token, error) {
-	token := Token{Kind: undefined, Value: nil}
-	var err error
-	for token.Kind == undefined && err == nil {
-		switch TokenKind(a.lexer.next(lvl)) {
-		case SQuote:
-			token.Kind = SQuote
-		case Quote:
-			token.Kind = Quote
-		case LBrace:
-			token.Kind = LBrace
-		case RBrace:
-			token.Kind = RBrace
-		case Number:
-			token.Kind = Number
-			token.Value, err = strconv.ParseFloat(a.lexer.Text(), 64)
-		//case 4:
-		//token.Kind = Null
-		case Identifier:
-			token.Kind = Identifier
-			token.Value = a.lexer.Text()
+// NextToken returns the next token from the input stream.
+func (l *Lexer) NextToken() (Token, error) {
+	if l.useLastToken {
+		l.useLastToken = false
+		return l.lastToken, nil
+	}
+
+	var (
+		err error
+		r   = ' '
+	)
+
+	for r == ' ' || r == '\n' || r == '\t' {
+		if r, _, err = l.rd.ReadRune(); err != nil {
+			return Token{}, fmt.Errorf("read next symbol: %w", err)
+		}
+		if r == '\n' {
+			l.currentLine++
 		}
 	}
-	if err != nil {
-		return Token{}, fmt.Errorf("unrecognized token %q at %d: %w", a.lexer.Text(), a.lexer.Line(), err)
+
+	var tkn Token
+
+	switch {
+	case r == '\'':
+		tkn = Token{Type: SQuote}
+	case r == '(':
+		tkn = Token{Type: LParen}
+	case r == ')':
+		tkn = Token{Type: RParen}
+	case isDigit(r):
+		tkn = l.readNumber(r)
+	case r == '_', isLetter(r):
+		tkn = l.readIdentifier(r)
+	case r == '/':
+		if l.readComments {
+			tkn = l.readComment(r)
+		}
+		l.currentLine++
+		return l.NextToken()
+	default:
+		return Token{}, fmt.Errorf("unexpected symbol: %c", r)
 	}
-	return token, nil
+
+	l.lastToken = tkn
+
+	return tkn, nil
 }
 
-// ErrUnrecognizedCharacter represents a parsing error.
-type ErrUnrecognizedCharacter string
+func (l *Lexer) UnreadToken() {
+	if l.useLastToken {
+		panic("unread token twice")
+	}
+	l.useLastToken = true
+}
 
-// Error returns a string representation of the error.
-func (e ErrUnrecognizedCharacter) Error() string {
-	return fmt.Sprintf("unrecognized character sequence: %q", string(e))
+func (l *Lexer) readIdentifier(r rune) Token {
+	var sb = &[]rune{}
+	*sb = append(*sb, r)
+
+	for {
+		r, _, err := l.rd.ReadRune()
+		if err != nil {
+			return Token{Type: Identifier, Value: string(*sb)}
+		}
+
+		if !isLetter(r) && !isDigit(r) && r != '_' {
+			l.rd.UnreadRune()
+			return Token{Type: Identifier, Value: string(*sb)}
+		}
+
+		*sb = append(*sb, r)
+	}
+}
+
+func (l *Lexer) readNumber(r rune) Token {
+	var sb = &[]rune{}
+	*sb = append(*sb, r)
+
+	for {
+		r, _, err := l.rd.ReadRune()
+		if err != nil {
+			return Token{Type: Number, Value: string(*sb)}
+		}
+
+		if !isDigit(r) && r != '.' {
+			l.rd.UnreadRune()
+			return Token{Type: Number, Value: string(*sb)}
+		}
+
+		*sb = append(*sb, r)
+	}
+}
+
+func (l *Lexer) readComment(r rune) Token {
+	var sb = &[]rune{}
+	*sb = append(*sb, r)
+
+	for {
+		r, _, err := l.rd.ReadRune()
+		if err != nil || r == '\n' {
+			return Token{Type: Comment, Value: string(*sb)}
+		}
+
+		*sb = append(*sb, r)
+	}
+}
+
+func (l *Lexer) Line() int {
+	return l.currentLine
+}
+
+func isDigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
+func isLetter(r rune) bool {
+	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
 }

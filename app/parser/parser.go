@@ -3,66 +3,142 @@ package parser
 import (
 	"github.com/cappuccinotm/flangc/app/lexer"
 	"fmt"
-	"log"
+	"strconv"
+	"strings"
 )
 
-// Expression defines methods to evaluate them.
-type Expression interface {
-}
-
-// Parser parses the expression through using the adapter.
 type Parser struct {
-	lexer  *lexAdapter
-	parser parserParser
+	l *lexer.Lexer
 }
 
-// NewParser makes new instance of Parser.
-func NewParser(lexer *lexer.Adapter) *Parser {
-	svc := &Parser{lexer: (*lexAdapter)(lexer)}
-	svc.parser = parserNewParser()
-	return svc
+func New(l *lexer.Lexer) *Parser {
+	return &Parser{l}
 }
 
-// NextExpression returns the next expression in the sequence
-func (p *Parser) NextExpression() (Expression, error) {
-	code := p.parser.Parse(p.lexer)
-	return code, nil
-}
-
-// ErrUnexpectedToken shows that the token, got from the lexer
-// wasn't recognized by the parser.
-type ErrUnexpectedToken lexer.Token
-
-// Error returns the string representation of the error.
-func (e ErrUnexpectedToken) Error() string {
-	return fmt.Sprintf("unexpected token: %v", lexer.Token(e))
-}
-
-type lexAdapter lexer.Adapter
-
-// Lex adapts the NextToken func to the parser's needs.
-func (l *lexAdapter) Lex(lval *parserSymType) int {
-	tkn, err := (*lexer.Adapter)(l).NextToken(lval.yys)
+func (p *Parser) Parse() (Expression, error) {
+	tkn, err := p.l.NextToken()
 	if err != nil {
-		log.Fatalf("[ERROR] failed to parse token: %v", err)
-		return 0
+		return nil, fmt.Errorf("get next token: %w", err)
 	}
-	switch tkn.Kind {
-	case lexer.Number:
-		return NUMBER
-	case lexer.Quote:
-		return QUOTE
+
+	switch tkn.Type {
 	case lexer.SQuote:
-		return SQUOTE
-	case lexer.Identifier:
-		return IDENTIFIER
-	case lexer.LBrace:
-		return LBRACE
-	case lexer.RBrace:
-		return RBRACE
+		return p.parseList()
+	case lexer.LParen:
+		return p.parseCall()
 	default:
-		return 0
+		return nil, fmt.Errorf("unexpected token at line %d: %s", p.l.Line(), tkn.Type)
 	}
 }
 
-func (l *lexAdapter) Error(s string) {}
+func (p *Parser) parseList() (Expression, error) {
+	var exprs []Expression
+
+	for {
+		tkn, err := p.l.NextToken()
+		if err != nil {
+			return nil, fmt.Errorf("get next token: %w", err)
+		}
+
+		switch tkn.Type {
+		case lexer.Identifier:
+			exprs = append(exprs, Identifier{Name: tkn.Value})
+		case lexer.Number:
+			f, err := strconv.ParseFloat(tkn.Value, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse number at line %d: %w", p.l.Line(), err)
+			}
+			exprs = append(exprs, Number{Value: f})
+		case lexer.RParen:
+			return List{Elements: exprs}, nil
+		case lexer.LParen, lexer.SQuote:
+			p.l.UnreadToken()
+			expr, err := p.Parse()
+			if err != nil {
+				return nil, fmt.Errorf("parse expression at line %d: %w", p.l.Line(), err)
+			}
+			exprs = append(exprs, expr)
+		default:
+			return nil, fmt.Errorf("unexpected token at line %d: %s", p.l.Line(), tkn.Type)
+		}
+	}
+}
+
+func (p *Parser) parseCall() (Expression, error) {
+	tkn, err := p.l.NextToken()
+	if err != nil {
+		return nil, fmt.Errorf("get next token: %w", err)
+	}
+
+	if tkn.Type != lexer.Identifier {
+		return nil, fmt.Errorf("unexpected token at line %d: %s", p.l.Line(), tkn.Type)
+	}
+
+	result := Call{Name: tkn.Value}
+
+	for {
+		tkn, err := p.l.NextToken()
+		if err != nil {
+			return nil, fmt.Errorf("get next token: %w", err)
+		}
+
+		switch tkn.Type {
+		case lexer.Identifier:
+			result.Args = append(result.Args, Identifier{Name: tkn.Value})
+		case lexer.Number:
+			f, err := strconv.ParseFloat(tkn.Value, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse number at line %d: %w", p.l.Line(), err)
+			}
+			result.Args = append(result.Args, Number{Value: f})
+		case lexer.RParen:
+			return result, nil
+		case lexer.LParen, lexer.SQuote:
+			p.l.UnreadToken()
+			expr, err := p.Parse()
+			if err != nil {
+				return nil, fmt.Errorf("parse expression at line %d: %w", p.l.Line(), err)
+			}
+			result.Args = append(result.Args, expr)
+		}
+	}
+}
+
+type Expression interface {
+	String() string
+}
+
+type Call struct {
+	Name string
+	Args []Expression
+}
+
+func (c Call) String() string {
+	var args []string
+	for _, arg := range c.Args {
+		args = append(args, arg.String())
+	}
+	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
+}
+
+type Identifier struct {
+	Name string
+}
+
+func (i Identifier) String() string { return i.Name }
+
+type List struct {
+	Elements []Expression
+}
+
+func (l List) String() string {
+	return fmt.Sprintf("%v", l.Elements)
+}
+
+type Number struct {
+	Value float64
+}
+
+func (n Number) String() string {
+	return fmt.Sprintf("%f", n.Value)
+}
