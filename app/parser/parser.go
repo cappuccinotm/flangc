@@ -35,16 +35,8 @@ func (p *Parser) Parse() (Expression, error) {
 			return nil, fmt.Errorf("get next token at %s: %w", cursor, err)
 		}
 
-		expr, err := p.findReservedKeyword(tkn)
-		switch {
-		case errors.Is(err, errNoReservedKeyword):
-		case err != nil:
-			return nil, fmt.Errorf("scan expression at %s: %w", cursor, err)
-		case err == nil:
-			return expr, nil
-		}
-
-		if expr, err = p.parseCall(tkn); err != nil {
+		expr, err := p.parseCall(tkn)
+		if err != nil {
 			return nil, fmt.Errorf("parse call at %s: %w", cursor, err)
 		}
 		return expr, nil
@@ -92,6 +84,18 @@ func (p *Parser) parseTuple() (Expression, error) {
 }
 
 func (p *Parser) parseCall(tkn lexer.Token) (Expression, error) {
+	expr, err := p.findReservedKeyword(tkn)
+	switch {
+	case errors.Is(err, errNoReservedKeyword):
+	case err != nil:
+		return nil, err
+	case err == nil:
+		if _, ok := expr.(*Call); !ok {
+			return nil, fmt.Errorf("expected function call, got %s", expr.String())
+		}
+		return expr, nil
+	}
+
 	result := &Call{Name: tkn.Value}
 
 	for {
