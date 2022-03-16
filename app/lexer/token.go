@@ -3,12 +3,12 @@ package lexer
 type TokenType string
 
 const (
-	SQuote     TokenType = "SQuote"
-	LParen     TokenType = "LParen"
-	RParen     TokenType = "RParen"
-	Number     TokenType = "Number"
-	Identifier TokenType = "Identifier"
-	Comment    TokenType = "Comment"
+	SQuote     TokenType = "quote"
+	LParen     TokenType = "("
+	RParen     TokenType = ")"
+	Number     TokenType = "number"
+	Identifier TokenType = "identifier"
+	Comment    TokenType = "comment"
 )
 
 type Token struct {
