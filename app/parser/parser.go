@@ -3,66 +3,134 @@ package parser
 import (
 	"github.com/cappuccinotm/flangc/app/lexer"
 	"fmt"
-	"log"
+	"strconv"
+	"errors"
 )
 
-// Expression defines methods to evaluate them.
-type Expression interface {
-}
-
-// Parser parses the expression through using the adapter.
 type Parser struct {
-	lexer  *lexAdapter
-	parser parserParser
+	l *lexer.Lexer
 }
 
-// NewParser makes new instance of Parser.
-func NewParser(lexer *lexer.Adapter) *Parser {
-	svc := &Parser{lexer: (*lexAdapter)(lexer)}
-	svc.parser = parserNewParser()
-	return svc
+func New(l *lexer.Lexer) *Parser {
+	return &Parser{l}
 }
 
-// NextExpression returns the next expression in the sequence
-func (p *Parser) NextExpression() (Expression, error) {
-	code := p.parser.Parse(p.lexer)
-	return code, nil
-}
-
-// ErrUnexpectedToken shows that the token, got from the lexer
-// wasn't recognized by the parser.
-type ErrUnexpectedToken lexer.Token
-
-// Error returns the string representation of the error.
-func (e ErrUnexpectedToken) Error() string {
-	return fmt.Sprintf("unexpected token: %v", lexer.Token(e))
-}
-
-type lexAdapter lexer.Adapter
-
-// Lex adapts the NextToken func to the parser's needs.
-func (l *lexAdapter) Lex(lval *parserSymType) int {
-	tkn, err := (*lexer.Adapter)(l).NextToken(lval.yys)
+func (p *Parser) Parse() (Expression, error) {
+	cursor := p.l.Cursor()
+	tkn, err := p.l.NextToken()
 	if err != nil {
-		log.Fatalf("[ERROR] failed to parse token: %v", err)
-		return 0
+		return nil, fmt.Errorf("get next token: %w", err)
 	}
-	switch tkn.Kind {
-	case lexer.Number:
-		return NUMBER
-	case lexer.Quote:
-		return QUOTE
+
+	switch tkn.Type {
 	case lexer.SQuote:
-		return SQUOTE
-	case lexer.Identifier:
-		return IDENTIFIER
-	case lexer.LBrace:
-		return LBRACE
-	case lexer.RBrace:
-		return RBRACE
+		expr, err := p.parseTuple()
+		if err != nil {
+			return nil, fmt.Errorf("parse list: %w", err)
+		}
+		return expr, nil
+	case lexer.LParen:
+		cursor = p.l.Cursor()
+		if tkn, err = p.readAndValidateToken(lexer.Identifier); err != nil {
+			return nil, fmt.Errorf("get next token at %s: %w", cursor, err)
+		}
+
+		expr, err := p.findReservedKeyword(tkn)
+		switch {
+		case errors.Is(err, errNoReservedKeyword):
+		case err != nil:
+			return nil, fmt.Errorf("scan expression at %s: %w", cursor, err)
+		case err == nil:
+			return expr, nil
+		}
+
+		if expr, err = p.parseCall(tkn); err != nil {
+			return nil, fmt.Errorf("parse call at %s: %w", cursor, err)
+		}
+		return expr, nil
 	default:
-		return 0
+		return nil, fmt.Errorf("unexpected token at %s: %s", cursor, tkn)
 	}
 }
 
-func (l *lexAdapter) Error(s string) {}
+// parses (el1 el2 el3) as list, without counting quote sign '
+func (p *Parser) parseTuple() (Expression, error) {
+	var exprs []Expression
+
+	tkn, err := p.readAndValidateToken(lexer.LParen)
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if tkn, err = p.l.NextToken(); err != nil {
+			return nil, fmt.Errorf("get next token: %w", err)
+		}
+
+		switch tkn.Type {
+		case lexer.Number:
+			f, err := strconv.ParseFloat(tkn.Value, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse number: %w", err)
+			}
+			exprs = append(exprs, &Number{Value: f})
+		case lexer.Identifier:
+			exprs = append(exprs, &Identifier{Name: tkn.Value})
+		case lexer.RParen:
+			return &List{Elements: exprs}, nil
+		case lexer.LParen, lexer.SQuote:
+			p.l.UnreadToken()
+			expr, err := p.Parse()
+			if err != nil {
+				return nil, fmt.Errorf("parse expression: %w", err)
+			}
+			exprs = append(exprs, expr)
+		default:
+			return nil, fmt.Errorf("unexpected token: %s", tkn)
+		}
+	}
+}
+
+func (p *Parser) parseCall(tkn lexer.Token) (Expression, error) {
+	result := &Call{Name: tkn.Value}
+
+	for {
+		tkn, err := p.l.NextToken()
+		if err != nil {
+			return nil, fmt.Errorf("get next token: %w", err)
+		}
+
+		switch tkn.Type {
+		case lexer.Identifier:
+			result.Args = append(result.Args, &Identifier{Name: tkn.Value})
+		case lexer.Number:
+			f, err := strconv.ParseFloat(tkn.Value, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse number: %w", err)
+			}
+			result.Args = append(result.Args, &Number{Value: f})
+		case lexer.RParen:
+			return result, nil
+		case lexer.LParen, lexer.SQuote:
+			p.l.UnreadToken()
+			expr, err := p.Parse()
+			if err != nil {
+				return nil, fmt.Errorf("parse expression: %w", err)
+			}
+			result.Args = append(result.Args, expr)
+		}
+	}
+}
+
+func (p *Parser) readAndValidateToken(typ lexer.TokenType) (lexer.Token, error) {
+	tkn, err := p.l.NextToken()
+	if err != nil {
+		return lexer.Token{}, fmt.Errorf("get next token: %w", err)
+	}
+
+	if tkn.Type != typ {
+		return lexer.Token{}, fmt.Errorf("expected %s, got: %s", typ, tkn)
+	}
+
+	return tkn, nil
+}
