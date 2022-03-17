@@ -15,16 +15,18 @@ func TestAll(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, dirEntry := range files {
-		log.Printf("[INFO] parsing file %s", dirEntry.Name())
+		dirEntry := dirEntry
 		fInfo, err := dirEntry.Info()
 		require.NoError(t, err, "Failed to get file info for %s", dirEntry.Name())
-
 		if fInfo.IsDir() {
 			continue
 		}
+		t.Run(dirEntry.Name(), func(t *testing.T) {
+			log.Printf("[INFO] parsing file %s", dirEntry.Name())
 
-		err = (&cmd.Run{FileLocation: path.Join("../_example", dirEntry.Name())}).
-			Execute([]string{})
-		assert.NoError(t, err, "Failed to compile %s", dirEntry.Name())
+			err = (&cmd.Run{FileLocation: path.Join("../_example", dirEntry.Name())}).
+				Execute([]string{})
+			assert.NoError(t, err, "Failed to compile %s", dirEntry.Name())
+		})
 	}
 }

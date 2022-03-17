@@ -28,6 +28,7 @@ func (p *Parser) findReservedKeyword(tkn lexer.Token) (expr eval.Expression, err
 }
 
 // (func name (args) (body))
+// func(name, [args], body(...))
 func (p *Parser) parseFunc() (eval.Expression, error) {
 	tkn, err := p.readAndValidateToken(lexer.Identifier)
 	if err != nil {

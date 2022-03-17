@@ -10,7 +10,7 @@ import (
 type Expression interface {
 	String() string
 	Type() string
-	//Equal(other Expression) bool
+	Equal(e Expression) bool
 }
 
 // Call represents a function call.
@@ -31,9 +31,9 @@ func (c *Call) String() string {
 	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
 }
 
-// Equal returns true if the call is equal to the other call.
+// Equal returns true if the two calls are equal.
 func (*Call) Equal(Expression) bool {
-	log.Printf("[WARN] equal on function calls is not supported")
+	log.Printf("[WARN] called Call.Equal()")
 	return false
 }
 
@@ -46,9 +46,9 @@ func (i *Identifier) Type() string { return "identifier" }
 // String returns the string representation of the identifier.
 func (i *Identifier) String() string { return i.Name }
 
-// Equal returns true if the identifier is equal to the other identifier.
-func (i *Identifier) Equal(other Expression) bool {
-	panic("not implemented")
+// Equal returns true if the two identifiers are equal.
+func (*Identifier) Equal(Expression) bool {
+	log.Printf("[WARN] called Identifier.Equal()")
 	return false
 }
 
@@ -59,7 +59,29 @@ type List struct{ Values []Expression }
 func (l *List) Type() string { return "list" }
 
 // String returns the string representation of the list.
-func (l *List) String() string { return fmt.Sprintf("%v", l.Values) }
+func (l *List) String() string {
+	var args []string
+	for _, arg := range l.Values {
+		args = append(args, arg.String())
+	}
+	return fmt.Sprintf("[%s]", strings.Join(args, ", "))
+}
+
+// Equal returns true if the two lists are equal.
+func (l *List) Equal(b Expression) bool {
+	if b, ok := b.(*List); ok {
+		if len(l.Values) != len(b.Values) {
+			return false
+		}
+		for i, v := range l.Values {
+			if !v.Equal(b.Values[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+}
 
 // Number represents a number.
 type Number struct{ Value float64 }
@@ -70,6 +92,14 @@ func (n *Number) Type() string { return "number" }
 // String returns the string representation of the number.
 func (n *Number) String() string { return fmt.Sprintf("%f", n.Value) }
 
+// Equal returns true if the two numbers are equal.
+func (n *Number) Equal(b Expression) bool {
+	if b, ok := b.(*Number); ok {
+		return n.Value == b.Value
+	}
+	return false
+}
+
 // Boolean represents a boolean.
 type Boolean struct{ Value bool }
 
@@ -78,3 +108,17 @@ func (b *Boolean) Type() string { return "boolean" }
 
 // String returns the string representation of the boolean.
 func (b *Boolean) String() string { return fmt.Sprintf("%t", b.Value) }
+
+// Equal returns true if the two booleans are equal.
+func (b *Boolean) Equal(b2 Expression) bool {
+	if b2, ok := b2.(*Boolean); ok {
+		return b.Value == b2.Value
+	}
+	return false
+}
+
+type brk struct{}
+
+func (b brk) String() string          { panic("must never be called") }
+func (b brk) Type() string            { panic("must never be called") }
+func (b brk) Equal(e Expression) bool { panic("must never be called") }
