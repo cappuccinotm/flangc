@@ -4,6 +4,7 @@ import (
 	"strings"
 	"fmt"
 	"log"
+	"strconv"
 )
 
 // Expression describes any language expression.
@@ -90,7 +91,7 @@ type Number struct{ Value float64 }
 func (n *Number) Type() string { return "number" }
 
 // String returns the string representation of the number.
-func (n *Number) String() string { return fmt.Sprintf("%f", n.Value) }
+func (n *Number) String() string { return strconv.FormatFloat(n.Value, 'f', -1, 64) }
 
 // Equal returns true if the two numbers are equal.
 func (n *Number) Equal(b Expression) bool {
@@ -120,7 +121,6 @@ func (b *Boolean) Equal(b2 Expression) bool {
 // Null represents a null value.
 type Null struct{}
 
-// Type returns the type of the null.
 func (n Null) String() string { return "null" }
 
 // Type returns the type of the null.
