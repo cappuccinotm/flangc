@@ -27,7 +27,7 @@ func (b Run) Execute(_ []string) error {
 	lex := lexer.NewLexer(f)
 
 	p := parser.NewParser(lex)
-	scope := eval.NewScope(nil, false)
+	scope := eval.NewScope(nil, nil, false)
 
 	for {
 		expr, err := p.ParseNext()

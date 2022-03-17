@@ -24,13 +24,22 @@ type Scope struct {
 }
 
 // NewScope creates a new evaluator.
-func NewScope(parent *Scope, printNulls bool) *Scope {
-	return &Scope{
+func NewScope(ctx Expression, parent *Scope, printNulls bool) *Scope {
+	result := &Scope{
 		Parent:     parent,
 		Vars:       make(map[string]Expression),
 		Funcs:      make(map[string]Function),
 		PrintNulls: printNulls,
+		Context:    ctx,
 	}
+
+	if parent != nil {
+		for name, fn := range parent.Funcs {
+			result.Funcs[name] = fn
+		}
+	}
+
+	return result
 }
 
 // GetVar returns the value of the expression with the given name.
@@ -159,7 +168,7 @@ func (s *Scope) call(call *Call) (Expression, error) {
 		}
 	}
 
-	scope := NewScope(s, s.PrintNulls)
+	scope := NewScope(call, s, s.PrintNulls)
 	for idx, arg := range fn.ArgNames {
 		if nestedCall, ok := call.Args[idx].(*Call); ok && nestedCall.Name == "lambda" {
 			argNames, body, err := makeLambdaFunc(nestedCall)

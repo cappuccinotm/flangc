@@ -40,6 +40,7 @@ func init() {
 		"break":  (*Scope).brk,
 		"return": (*Scope).ret,
 		"print":  (*Scope).Print,
+		"prog":   (*Scope).prog,
 	}
 }
 

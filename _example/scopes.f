@@ -1,3 +1,4 @@
+//skip
 (setq x 15)
 (cond (equal x 5) (prog () (
   (print 123)
