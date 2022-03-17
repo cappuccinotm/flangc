@@ -55,11 +55,8 @@ func is(typ string) func(*Scope, *Call) (Expression, error) {
 		}
 
 		if typ == "null" {
-			i, ok := call.Args[0].(*Identifier)
-			if !ok {
-				return &Boolean{Value: false}, nil
-			}
-			return &Boolean{Value: i.Name == "null"}, nil
+			_, ok := call.Args[0].(Null)
+			return &Boolean{Value: ok}, nil
 		}
 
 		return &Boolean{Value: call.Args[0].Type() == typ}, nil

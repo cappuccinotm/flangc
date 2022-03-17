@@ -12,12 +12,22 @@ type Expression interface {
 	String() string
 	Type() string
 	Equal(e Expression) bool
+	FString() string
 }
 
 // Call represents a function call.
 type Call struct {
 	Name string
 	Args []Expression
+}
+
+// FString returns the F language representation of the call.
+func (c *Call) FString() string {
+	args := make([]string, len(c.Args))
+	for idx := range c.Args {
+		args[idx] = c.Args[idx].FString()
+	}
+	return fmt.Sprintf("(%s %s)", c.Name, strings.Join(args, ", "))
 }
 
 // Type returns the type of the call.
@@ -40,6 +50,9 @@ func (*Call) Equal(Expression) bool {
 
 // Identifier represents an identifier.
 type Identifier struct{ Name string }
+
+// FString returns the F language representation of the identifier.
+func (i *Identifier) FString() string { panic("must never be called") }
 
 // Type returns the type of the identifier.
 func (i *Identifier) Type() string { return "identifier" }
@@ -66,6 +79,15 @@ func (l *List) String() string {
 		args = append(args, arg.String())
 	}
 	return fmt.Sprintf("[%s]", strings.Join(args, ", "))
+}
+
+// FString returns the F language representation of the list.
+func (l *List) FString() string {
+	var args []string
+	for _, arg := range l.Values {
+		args = append(args, arg.String())
+	}
+	return fmt.Sprintf("'(%s)", strings.Join(args, " "))
 }
 
 // Equal returns true if the two lists are equal.
@@ -101,6 +123,9 @@ func (n *Number) Equal(b Expression) bool {
 	return false
 }
 
+// FString returns the F language representation of the number.
+func (n *Number) FString() string { return n.String() }
+
 // Boolean represents a boolean.
 type Boolean struct{ Value bool }
 
@@ -118,6 +143,9 @@ func (b *Boolean) Equal(b2 Expression) bool {
 	return false
 }
 
+// FString returns the F language representation of the boolean.
+func (b *Boolean) FString() string { return b.String() }
+
 // Null represents a null value.
 type Null struct{}
 
@@ -134,8 +162,12 @@ func (n Null) Equal(e Expression) bool {
 	return false
 }
 
+// FString returns the F language representation of the null.
+func (n Null) FString() string { return "null" }
+
 type brk struct{}
 
+func (b brk) FString() string         { panic("must never be called") }
 func (b brk) String() string          { panic("must never be called") }
 func (b brk) Type() string            { panic("must never be called") }
 func (b brk) Equal(e Expression) bool { panic("must never be called") }

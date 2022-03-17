@@ -90,7 +90,7 @@ func (s *Scope) Print(call *Call) (Expression, error) {
 		}
 		return Null{}, nil
 	}
-	fmt.Println(expr.String())
+	fmt.Println(expr.FString())
 	return Null{}, nil
 }
 
