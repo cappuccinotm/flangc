@@ -1,38 +1,46 @@
 package eval
 
-var builtinMethods = map[string]func(*Scope, *Call) (Expression, error){
-	"quote":    (*Scope).quote,
-	"equal":    (*Scope).equal,
-	"nonequal": (*Scope).nonequal,
-	"head":     (*Scope).head,
-	"tail":     (*Scope).tail,
-	"cons":     (*Scope).cons,
-	// arithmetic
-	"times":     (*Scope).times,
-	"plus":      (*Scope).plus,
-	"minus":     (*Scope).minus,
-	"divide":    (*Scope).div,
-	"less":      (*Scope).less,
-	"lesseq":    (*Scope).lesseq,
-	"greater":   (*Scope).greater,
-	"greatereq": (*Scope).greatereq,
-	// logic
-	"and": (*Scope).and,
-	"or":  (*Scope).or,
-	"not": (*Scope).not,
-	"xor": (*Scope).xor,
-	// predecates
-	"isnull": is("null"),
-	"isbool": is("boolean"),
-	"islist": is("list"),
-	"isnum":  is("number"),
-	// state-related
-	"setq":   setq(true),
-	"func":   setq(false),
-	"cond":   (*Scope).cond,
-	"while":  (*Scope).while,
-	"break":  (*Scope).brk,
-	"return": (*Scope).ret,
+var builtinMethods map[string]func(*Scope, *Call) (Expression, error)
+
+func init() {
+	builtinMethods = map[string]func(*Scope, *Call) (Expression, error){
+		"quote":    (*Scope).quote,
+		"equal":    (*Scope).equal,
+		"nonequal": (*Scope).nonequal,
+		// list
+		"head":  (*Scope).head,
+		"tail":  (*Scope).tail,
+		"cons":  (*Scope).cons,
+		"empty": (*Scope).empty,
+		// arithmetic
+		"times":     (*Scope).times,
+		"plus":      (*Scope).plus,
+		"minus":     (*Scope).minus,
+		"divide":    (*Scope).div,
+		"less":      (*Scope).less,
+		"lesseq":    (*Scope).lesseq,
+		"greater":   (*Scope).greater,
+		"greatereq": (*Scope).greatereq,
+		// logic
+		"and": (*Scope).and,
+		"or":  (*Scope).or,
+		"not": (*Scope).not,
+		"xor": (*Scope).xor,
+		// predecates
+		"isnull": is("null"),
+		"isbool": is("boolean"),
+		"islist": is("list"),
+		"isnum":  is("number"),
+		// state-related
+		"setq": (*Scope).setq,
+		"func": (*Scope).setfn,
+		// execution flow
+		"cond":   (*Scope).cond,
+		"while":  (*Scope).while,
+		"break":  (*Scope).brk,
+		"return": (*Scope).ret,
+		"print":  (*Scope).Print,
+	}
 }
 
 func (s *Scope) quote(call *Call) (Expression, error) {

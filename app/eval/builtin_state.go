@@ -1,97 +1,51 @@
 package eval
 
-func setq(eval bool) func(*Scope, *Call) (Expression, error) {
-	return func(s *Scope, call *Call) (Expression, error) {
-		if len(call.Args) != 2 {
-			return nil, ErrInvalidArguments{expected: "2", actual: len(call.Args)}
-		}
+import "fmt"
 
-		name, ok := call.Args[0].(*Identifier)
-		if !ok {
-			return nil, ErrArgumentType{expected: "identifier", actual: call.Args[0].Type()}
-		}
-
-		var (
-			val = call.Args[1]
-			err error
-		)
-		if eval {
-			if val, err = s.Eval(call.Args[1]); err != nil {
-				return nil, err
-			}
-		}
-
-		s.Set(name.Name, val)
-
-		return nil, nil
-	}
-}
-
-func (s *Scope) cond(call *Call) (Expression, error) {
-	if len(call.Args) < 2 || len(call.Args) > 3 {
-		return nil, ErrInvalidArguments{expected: "2 or 3", actual: len(call.Args)}
-	}
-
-	predicate, err := s.Eval(call.Args[0])
-	if err != nil {
-		return nil, err
-	}
-
-	b, ok := predicate.(*Boolean)
-	if !ok {
-		return nil, ErrArgumentType{expected: "boolean", actual: predicate.Type()}
-	}
-
-	if b.Value {
-		return s.Eval(call.Args[1])
-	}
-
-	if len(call.Args) == 3 {
-		return s.Eval(call.Args[2])
-	}
-
-	return nil, nil
-}
-
-func (s *Scope) while(call *Call) (Expression, error) {
+func (s *Scope) setq(call *Call) (Expression, error) {
 	if len(call.Args) != 2 {
 		return nil, ErrInvalidArguments{expected: "2", actual: len(call.Args)}
 	}
 
-	predicate, err := s.Eval(call.Args[0])
+	name, ok := call.Args[0].(*Identifier)
+	if !ok {
+		return nil, ErrArgumentType{expected: "identifier", actual: call.Args[0].Type()}
+	}
+
+	val, err := s.Eval(call.Args[1])
 	if err != nil {
 		return nil, err
 	}
 
-	b, ok := predicate.(*Boolean)
+	s.SetVar(name.Name, val)
+
+	return nil, nil
+}
+
+func (s *Scope) setfn(call *Call) (Expression, error) {
+	if len(call.Args) != 3 {
+		return nil, ErrInvalidArguments{expected: "3", actual: len(call.Args)}
+	}
+
+	name, ok := call.Args[0].(*Identifier)
 	if !ok {
-		return nil, ErrArgumentType{expected: "boolean", actual: predicate.Type()}
+		return nil, ErrArgumentType{expected: "identifier", actual: call.Args[0].Type()}
 	}
 
-	for b.Value && s.Return == nil {
-		return s.Eval(call.Args[1])
+	argList, ok := call.Args[1].(*List)
+	if !ok {
+		return nil, ErrArgumentType{expected: "list", actual: call.Args[1].Type()}
 	}
 
-	return nil, nil
-}
+	args := make([]string, len(argList.Values))
+	for idx, expr := range argList.Values {
+		str, ok := expr.(*Identifier)
+		if !ok {
+			return nil, fmt.Errorf("argument %d: %w", idx, ErrArgumentType{expected: "identifier", actual: expr.Type()})
+		}
+		args[idx] = str.Name
+	}
 
-func (s *Scope) brk(*Call) (Expression, error) {
-	call, ok := s.Context.(*Call)
-	if !ok || (call.Name != "while" && call.Name != "prog") {
-		return nil, ErrInvalidContext
-	}
-	if err := s.SetBreak(); err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
-func (s *Scope) ret(call *Call) (Expression, error) {
-	if len(call.Args) != 1 {
-		return nil, ErrInvalidArguments{expected: "1", actual: len(call.Args)}
-	}
-	if err := s.SetReturn(call.Args[1]); err != nil {
-		return nil, err
-	}
+	s.SetFunc(name.Name, args, call.Args[2])
 	return nil, nil
 }

@@ -35,7 +35,17 @@ type ErrUndefined struct {
 }
 
 // Error returns string representation of the error.
-func (e ErrUndefined) Error() string { return fmt.Sprintf("undefined variable %s", e.Name) }
+func (e ErrUndefined) Error() string { return fmt.Sprintf("undefined %s", e.Name) }
+
+// ErrNotFunction is returned when the name of a function is undefined.
+type ErrNotFunction struct {
+	Name string
+}
+
+// Error returns string representation of the error.
+func (e ErrNotFunction) Error() string {
+	return fmt.Sprintf("%s is not a function", e.Name)
+}
 
 var (
 	ErrZeroDivision   = errors.New("zero division")

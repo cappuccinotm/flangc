@@ -8,6 +8,7 @@ import (
 	"github.com/cappuccinotm/flangc/app/parser"
 	"io"
 	"errors"
+	"github.com/cappuccinotm/flangc/app/eval"
 )
 
 // Run command builds the program at the specified path.
@@ -25,6 +26,7 @@ func (b Run) Execute(_ []string) error {
 	lex := lexer.NewLexer(f)
 
 	p := parser.NewParser(lex)
+	scope := eval.NewScope(nil, false)
 
 	for {
 		expr, err := p.ParseNext()
@@ -32,10 +34,21 @@ func (b Run) Execute(_ []string) error {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("parse: %w", err)
+			log.Printf("[ERROR] parse: %v", err)
+			continue
 		}
 
-		log.Printf("[INFO] parsed expression: %s", expr)
+		res, err := scope.Eval(expr)
+		if err != nil {
+			log.Printf("[ERROR] execute statement %s: %v", expr.String(), err)
+			continue
+		}
+		_, err = scope.Print(&eval.Call{Name: "print", Args: []eval.Expression{res}})
+		if err != nil {
+			log.Printf("[ERROR] print result %s: %v", res.String(), err)
+			continue
+		}
+		//log.Printf("[INFO] parsed expression: %s", expr)
 	}
 
 	//log.Printf("[INFO] built without errors")
