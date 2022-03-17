@@ -35,7 +35,10 @@ tasks:
   build:
     cmds:
       - echo "Building version {{.VERSION}}"
-      - go build -mod=vendor -o='./build/flangc' -ldflags="-X 'main.version="{{.VERSION}}"' -s -w" ./app/main.go
+      - GOOS=windows GOARCH=386 go build -mod=vendor -o='./build/flangc_windows' -ldflags="-X 'main.version="{{.VERSION}}"' -s -w" ./app/main.go
+      - GOOS=linux GOARCH=386 go build -mod=vendor -o='./build/flangc_linux' -ldflags="-X 'main.version="{{.VERSION}}"' -s -w" ./app/main.go
+      - GOOS=darwin GOARCH=amd64 go build -mod=vendor -o='./build/flangc_macos' -ldflags="-X 'main.version="{{.VERSION}}"' -s -w" ./app/main.go
+      - GOOS=darwin GOARCH=arm64 go build -mod=vendor -o='./build/flangc_m1' -ldflags="-X 'main.version="{{.VERSION}}"' -s -w" ./app/main.go
     desc: Build the application at ./build/flangc
     dir: .
     silent: true
