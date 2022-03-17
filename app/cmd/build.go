@@ -35,7 +35,7 @@ func (b Run) Execute(_ []string) error {
 	lex := lexer.NewLexer(rd)
 
 	p := parser.NewParser(lex)
-	scope := eval.NewScope(nil, nil, false)
+	scope := eval.NewScope("", nil, false)
 
 	for {
 		if b.FileLocation == "" {

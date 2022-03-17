@@ -18,13 +18,13 @@ type Scope struct {
 	Parent     *Scope
 	Vars       map[string]Expression
 	Funcs      map[string]Function
-	Context    Expression
+	Context    string
 	Return     Expression
 	PrintNulls bool
 }
 
 // NewScope creates a new evaluator.
-func NewScope(ctx Expression, parent *Scope, printNulls bool) *Scope {
+func NewScope(ctx string, parent *Scope, printNulls bool) *Scope {
 	result := &Scope{
 		Parent:     parent,
 		Vars:       make(map[string]Expression),
@@ -39,16 +39,27 @@ func NewScope(ctx Expression, parent *Scope, printNulls bool) *Scope {
 		}
 	}
 
+	if ctx == "prog" && parent != nil && parent.Context == "func" {
+		for name, v := range parent.Vars {
+			result.Vars[name] = v
+		}
+	}
+
 	return result
 }
 
 // GetVar returns the value of the expression with the given name.
-func (s *Scope) GetVar(name string) (Expression, error) {
+func (s *Scope) GetVar(name string, searchInParentScopes bool) (Expression, error) {
 	if s.Vars != nil {
 		if v, ok := s.Vars[name]; ok {
 			return v, nil
 		}
 	}
+
+	if searchInParentScopes && s.Parent != nil {
+		return s.Parent.GetVar(name, searchInParentScopes)
+	}
+
 	return nil, ErrUndefined{Name: name}
 }
 
@@ -80,12 +91,10 @@ func (s *Scope) GetFunc(name string) (Function, error) {
 
 // SetBreak sets the return value of the evaluator.
 func (s *Scope) SetBreak() error {
-	ctx, ok := s.Context.(*Call)
-	for !ok && s.Parent != nil && ctx.Name != "while" && ctx.Name != "func" {
+	for s.Parent != nil && s.Context != "while" && s.Context != "func" {
 		s = s.Parent
-		ctx, ok = s.Context.(*Call)
 	}
-	if !ok || s.Parent == nil || ctx.Name != "while" {
+	if s.Context != "while" || s.Parent == nil {
 		return ErrInvalidContext
 	}
 	s.Return = brk{}
@@ -94,12 +103,10 @@ func (s *Scope) SetBreak() error {
 
 // SetReturn sets the return value of the evaluator.
 func (s *Scope) SetReturn(val Expression) error {
-	ctx, ok := s.Context.(*Call)
-	for !ok && s.Parent != nil && ctx.Name != "func" {
+	for s.Parent != nil && s.Context != "func" {
 		s = s.Parent
-		ctx, ok = s.Context.(*Call)
 	}
-	if !ok || s.Parent == nil {
+	if s.Context != "func" || s.Parent == nil {
 		return ErrInvalidContext
 	}
 	s.Return = val
@@ -118,7 +125,7 @@ func (s *Scope) Eval(expr Expression) (Expression, error) {
 	case *Number:
 		return expr, nil
 	case *Identifier:
-		v, err := s.GetVar(expr.Name)
+		v, err := s.GetVar(expr.Name, false)
 		if errors.Is(err, &ErrUndefined{}) {
 			fn, err := s.GetFunc(expr.Name)
 			if err != nil {
@@ -168,7 +175,7 @@ func (s *Scope) call(call *Call) (Expression, error) {
 		}
 	}
 
-	scope := NewScope(call, s, s.PrintNulls)
+	scope := NewScope("func", s, s.PrintNulls)
 	for idx, arg := range fn.ArgNames {
 		if nestedCall, ok := call.Args[idx].(*Call); ok && nestedCall.Name == "lambda" {
 			argNames, body, err := makeLambdaFunc(nestedCall)
@@ -189,6 +196,12 @@ func (s *Scope) call(call *Call) (Expression, error) {
 	result, err := scope.Eval(fn.Body)
 	if err != nil {
 		return nil, fmt.Errorf("evaluate function %s body: %w", call.Name, err)
+	}
+
+	if call, ok := fn.Body.(*Call); ok {
+		if call.Name == "prog" {
+			return scope.Return, nil
+		}
 	}
 
 	return result, nil

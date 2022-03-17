@@ -51,10 +51,6 @@ func (s *Scope) while(call *Call) (Expression, error) {
 }
 
 func (s *Scope) brk(*Call) (Expression, error) {
-	call, ok := s.Context.(*Call)
-	if !ok || (call.Name != "while" && call.Name != "prog") {
-		return nil, ErrInvalidContext
-	}
 	if err := s.SetBreak(); err != nil {
 		return nil, err
 	}
@@ -66,7 +62,11 @@ func (s *Scope) ret(call *Call) (Expression, error) {
 		return nil, ErrInvalidArguments{expected: "0 or 1", actual: len(call.Args)}
 	}
 	if len(call.Args) == 1 {
-		if err := s.SetReturn(call.Args[1]); err != nil {
+		expr, err := s.Eval(call.Args[0])
+		if err != nil {
+			return nil, err
+		}
+		if err = s.SetReturn(expr); err != nil {
 			return nil, err
 		}
 	}
@@ -113,14 +113,15 @@ func (s *Scope) prog(call *Call) (Expression, error) {
 		return nil, ErrArgumentType{expected: "list", actual: call.Args[1].Type()}
 	}
 
-	scope := NewScope(call, s, s.PrintNulls)
+	scope := NewScope("prog", s, s.PrintNulls)
+
 	for _, expr := range exposureListExpr.Values {
 		id, ok := expr.(*Identifier)
 		if !ok {
 			return nil, ErrArgumentType{expected: "identifier", actual: expr.Type()}
 		}
 
-		v, err := s.GetVar(id.Name)
+		v, err := s.GetVar(id.Name, true)
 		if err != nil {
 			return nil, err
 		}

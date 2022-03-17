@@ -17,6 +17,8 @@ func (p *Parser) findReservedKeyword(tkn lexer.Token) (expr eval.Expression, err
 		expr, err = p.parseLambda()
 	case "prog":
 		expr, err = p.parseProg()
+	case "while":
+		expr, err = p.parseWhile()
 	default:
 		return nil, errNoReservedKeyword
 	}
@@ -110,6 +112,47 @@ func (p *Parser) parseProg() (eval.Expression, error) {
 	result.Args = append(result.Args, expr)
 
 	if expr, err = p.parseTuple(); err != nil {
+		return nil, err
+	}
+
+	result.Args = append(result.Args, expr)
+
+	if _, err = p.readAndValidateToken(lexer.RParen); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// (while (predicate) (statements))
+func (p *Parser) parseWhile() (eval.Expression, error) {
+	result := &eval.Call{Name: "while", Args: nil}
+
+	if _, err := p.readAndValidateToken(lexer.LParen); err != nil {
+		return nil, err
+	}
+	
+	tkn, err := p.readAndValidateToken(lexer.Identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	expr, err := p.parseCall(tkn)
+	if err != nil {
+		return nil, err
+	}
+
+	result.Args = append(result.Args, expr)
+
+	if _, err = p.readAndValidateToken(lexer.LParen); err != nil {
+		return nil, err
+	}
+
+	if tkn, err = p.readAndValidateToken(lexer.Identifier); err != nil {
+		return nil, err
+	}
+
+	if expr, err = p.parseCall(tkn); err != nil {
 		return nil, err
 	}
 
