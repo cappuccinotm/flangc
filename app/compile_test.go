@@ -7,6 +7,7 @@ import (
 	"github.com/cappuccinotm/flangc/app/cmd"
 	"path"
 	"github.com/stretchr/testify/assert"
+	"log"
 )
 
 func TestAll(t *testing.T) {
@@ -14,6 +15,7 @@ func TestAll(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, dirEntry := range files {
+		log.Printf("[INFO] parsing file %s", dirEntry.Name())
 		fInfo, err := dirEntry.Info()
 		require.NoError(t, err, "Failed to get file info for %s", dirEntry.Name())
 

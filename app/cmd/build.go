@@ -24,10 +24,10 @@ func (b Run) Execute(_ []string) error {
 
 	lex := lexer.NewLexer(f)
 
-	p := parser.New(lex)
+	p := parser.NewParser(lex)
 
 	for {
-		expr, err := p.Parse()
+		expr, err := p.ParseNext()
 		if errors.Is(err, io.EOF) {
 			break
 		}
@@ -38,7 +38,7 @@ func (b Run) Execute(_ []string) error {
 		log.Printf("[INFO] parsed expression: %s", expr)
 	}
 
-	log.Printf("[INFO] built without errors")
+	//log.Printf("[INFO] built without errors")
 
 	return nil
 }
