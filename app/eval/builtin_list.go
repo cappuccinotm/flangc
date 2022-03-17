@@ -15,7 +15,7 @@ func (s *Scope) cons(call *Call) (Expression, error) {
 		return nil, err
 	}
 
-	if listExpr == nil {
+	if _, ok := listExpr.(Null); ok {
 		return &List{Values: []Expression{elemExpr}}, nil
 	}
 

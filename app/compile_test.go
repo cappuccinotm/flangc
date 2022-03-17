@@ -8,6 +8,8 @@ import (
 	"path"
 	"github.com/stretchr/testify/assert"
 	"log"
+	"io"
+	"bytes"
 )
 
 func TestAll(t *testing.T) {
@@ -24,7 +26,21 @@ func TestAll(t *testing.T) {
 		t.Run(dirEntry.Name(), func(t *testing.T) {
 			log.Printf("[INFO] parsing file %s", dirEntry.Name())
 
-			err = (&cmd.Run{FileLocation: path.Join("../_example", dirEntry.Name())}).
+			fLoc := path.Join("../_example", dirEntry.Name())
+
+			f, err := os.Open(fLoc)
+			require.NoError(t, err)
+
+			b, err := io.ReadAll(f)
+			require.NoError(t, err)
+
+			if bytes.HasPrefix(b, []byte("//skip")) {
+				t.Skip()
+			}
+
+			require.NoError(t, f.Close())
+
+			err = (&cmd.Run{FileLocation: fLoc, FailOnError: true}).
 				Execute([]string{})
 			assert.NoError(t, err, "Failed to compile %s", dirEntry.Name())
 		})

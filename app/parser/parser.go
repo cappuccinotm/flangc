@@ -71,7 +71,7 @@ func (p *Parser) parseTuple() (eval.Expression, error) {
 			}
 			exprs = append(exprs, &eval.Number{Value: f})
 		case lexer.Identifier:
-			exprs = append(exprs, &eval.Identifier{Name: tkn.Value})
+			exprs = append(exprs, parseIdentifier(tkn.Value))
 		case lexer.RParen:
 			return &eval.List{Values: exprs}, nil
 		case lexer.LParen, lexer.SQuote:
@@ -84,6 +84,19 @@ func (p *Parser) parseTuple() (eval.Expression, error) {
 		default:
 			return nil, fmt.Errorf("unexpected token: %s", tkn)
 		}
+	}
+}
+
+func parseIdentifier(value string) eval.Expression {
+	switch value {
+	case "true":
+		return &eval.Boolean{Value: true}
+	case "false":
+		return &eval.Boolean{Value: false}
+	case "null":
+		return eval.Null{}
+	default:
+		return &eval.Identifier{Name: value}
 	}
 }
 
@@ -110,7 +123,7 @@ func (p *Parser) parseCall(tkn lexer.Token) (eval.Expression, error) {
 
 		switch tkn.Type {
 		case lexer.Identifier:
-			result.Args = append(result.Args, &eval.Identifier{Name: tkn.Value})
+			result.Args = append(result.Args, parseIdentifier(tkn.Value))
 		case lexer.Number:
 			f, err := strconv.ParseFloat(tkn.Value, 64)
 			if err != nil {

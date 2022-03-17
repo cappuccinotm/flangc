@@ -122,8 +122,10 @@ func (s *Scope) Eval(expr Expression) (Expression, error) {
 		return expr, nil
 	case *Boolean:
 		return expr, nil
+	case Null:
+		return Null{}, nil
 	}
-	return nil, nil
+	return nil, ErrInvalidExpression{Expr: expr}
 }
 
 func makeLambdaCall(fn Function) Expression {

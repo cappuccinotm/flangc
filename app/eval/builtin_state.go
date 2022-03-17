@@ -19,7 +19,7 @@ func (s *Scope) setq(call *Call) (Expression, error) {
 
 	s.SetVar(name.Name, val)
 
-	return nil, nil
+	return Null{}, nil
 }
 
 func (s *Scope) setfn(call *Call) (Expression, error) {
@@ -47,5 +47,5 @@ func (s *Scope) setfn(call *Call) (Expression, error) {
 	}
 
 	s.SetFunc(name.Name, args, call.Args[2])
-	return nil, nil
+	return Null{}, nil
 }

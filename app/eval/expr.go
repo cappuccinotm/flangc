@@ -117,6 +117,23 @@ func (b *Boolean) Equal(b2 Expression) bool {
 	return false
 }
 
+// Null represents a null value.
+type Null struct{}
+
+// Type returns the type of the null.
+func (n Null) String() string { return "null" }
+
+// Type returns the type of the null.
+func (n Null) Type() string { return "null" }
+
+// Equal returns true if the two nulls are equal.
+func (n Null) Equal(e Expression) bool {
+	if _, ok := e.(Null); ok {
+		return true
+	}
+	return false
+}
+
 type brk struct{}
 
 func (b brk) String() string          { panic("must never be called") }

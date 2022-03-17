@@ -25,7 +25,7 @@ func (s *Scope) cond(call *Call) (Expression, error) {
 		return s.Eval(call.Args[2])
 	}
 
-	return nil, nil
+	return Null{}, nil
 }
 
 func (s *Scope) while(call *Call) (Expression, error) {
@@ -47,7 +47,7 @@ func (s *Scope) while(call *Call) (Expression, error) {
 		return s.Eval(call.Args[1])
 	}
 
-	return nil, nil
+	return Null{}, nil
 }
 
 func (s *Scope) brk(*Call) (Expression, error) {
@@ -58,7 +58,7 @@ func (s *Scope) brk(*Call) (Expression, error) {
 	if err := s.SetBreak(); err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return Null{}, nil
 }
 
 func (s *Scope) ret(call *Call) (Expression, error) {
@@ -71,7 +71,7 @@ func (s *Scope) ret(call *Call) (Expression, error) {
 		}
 	}
 
-	return nil, nil
+	return Null{}, nil
 }
 
 func (s *Scope) Print(call *Call) (Expression, error) {
@@ -84,14 +84,14 @@ func (s *Scope) Print(call *Call) (Expression, error) {
 		return nil, err
 	}
 
-	if expr == nil {
+	if expr == nil || expr.String() == "null" {
 		if s.PrintNulls {
 			fmt.Println("null")
 		}
-		return nil, nil
+		return Null{}, nil
 	}
 	fmt.Println(expr.String())
-	return nil, nil
+	return Null{}, nil
 }
 
 func (s *Scope) lambda(call *Call) (Expression, error) {

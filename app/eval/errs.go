@@ -47,6 +47,16 @@ func (e ErrNotFunction) Error() string {
 	return fmt.Sprintf("%s is not a function", e.Name)
 }
 
+// ErrInvalidExpression is returned when the expression is invalid.
+type ErrInvalidExpression struct {
+	Expr Expression
+}
+
+// Error returns string representation of the error.
+func (e ErrInvalidExpression) Error() string {
+	return fmt.Sprintf("invalid expression: %s", e.Expr)
+}
+
 var (
 	ErrZeroDivision   = errors.New("zero division")
 	ErrInvalidContext = errors.New("statement is illegal in this context")
