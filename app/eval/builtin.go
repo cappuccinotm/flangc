@@ -41,6 +41,7 @@ func init() {
 		"return": (*Scope).ret,
 		"print":  (*Scope).Print,
 		"prog":   (*Scope).prog,
+		"eval":   (*Scope).eval,
 	}
 }
 

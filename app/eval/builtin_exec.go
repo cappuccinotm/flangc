@@ -148,3 +148,20 @@ func (s *Scope) prog(call *Call) (Expression, error) {
 
 	return scope.Return, nil
 }
+
+func (s *Scope) eval(call *Call) (Expression, error) {
+	if len(call.Args) != 1 {
+		return nil, ErrInvalidArguments{expected: "1", actual: len(call.Args)}
+	}
+
+	expr, err := s.Eval(call.Args[0])
+	if err != nil {
+		return nil, err
+	}
+
+	if expr == nil {
+		return Null{}, nil
+	}
+
+	return expr, nil
+}
