@@ -5,17 +5,21 @@ import (
 	"fmt"
 	"strconv"
 	"errors"
+	"github.com/cappuccinotm/flangc/app/eval"
 )
 
+// Parser parsers expressions, read through the lexer
 type Parser struct {
 	l *lexer.Lexer
 }
 
-func New(l *lexer.Lexer) *Parser {
+// NewParser creates a new parser
+func NewParser(l *lexer.Lexer) *Parser {
 	return &Parser{l}
 }
 
-func (p *Parser) Parse() (Expression, error) {
+// ParseNext parses next expression.
+func (p *Parser) ParseNext() (eval.Expression, error) {
 	cursor := p.l.Cursor()
 	tkn, err := p.l.NextToken()
 	if err != nil {
@@ -35,16 +39,8 @@ func (p *Parser) Parse() (Expression, error) {
 			return nil, fmt.Errorf("get next token at %s: %w", cursor, err)
 		}
 
-		expr, err := p.findReservedKeyword(tkn)
-		switch {
-		case errors.Is(err, errNoReservedKeyword):
-		case err != nil:
-			return nil, fmt.Errorf("scan expression at %s: %w", cursor, err)
-		case err == nil:
-			return expr, nil
-		}
-
-		if expr, err = p.parseCall(tkn); err != nil {
+		expr, err := p.parseCall(tkn)
+		if err != nil {
 			return nil, fmt.Errorf("parse call at %s: %w", cursor, err)
 		}
 		return expr, nil
@@ -54,8 +50,8 @@ func (p *Parser) Parse() (Expression, error) {
 }
 
 // parses (el1 el2 el3) as list, without counting quote sign '
-func (p *Parser) parseTuple() (Expression, error) {
-	var exprs []Expression
+func (p *Parser) parseTuple() (eval.Expression, error) {
+	var exprs []eval.Expression
 
 	tkn, err := p.readAndValidateToken(lexer.LParen)
 	if err != nil {
@@ -73,14 +69,14 @@ func (p *Parser) parseTuple() (Expression, error) {
 			if err != nil {
 				return nil, fmt.Errorf("parse number: %w", err)
 			}
-			exprs = append(exprs, &Number{Value: f})
+			exprs = append(exprs, &eval.Number{Value: f})
 		case lexer.Identifier:
-			exprs = append(exprs, &Identifier{Name: tkn.Value})
+			exprs = append(exprs, parseIdentifier(tkn.Value))
 		case lexer.RParen:
-			return &List{Elements: exprs}, nil
+			return &eval.List{Values: exprs}, nil
 		case lexer.LParen, lexer.SQuote:
 			p.l.UnreadToken()
-			expr, err := p.Parse()
+			expr, err := p.ParseNext()
 			if err != nil {
 				return nil, fmt.Errorf("parse expression: %w", err)
 			}
@@ -91,8 +87,33 @@ func (p *Parser) parseTuple() (Expression, error) {
 	}
 }
 
-func (p *Parser) parseCall(tkn lexer.Token) (Expression, error) {
-	result := &Call{Name: tkn.Value}
+func parseIdentifier(value string) eval.Expression {
+	switch value {
+	case "true":
+		return &eval.Boolean{Value: true}
+	case "false":
+		return &eval.Boolean{Value: false}
+	case "null":
+		return eval.Null{}
+	default:
+		return &eval.Identifier{Name: value}
+	}
+}
+
+func (p *Parser) parseCall(tkn lexer.Token) (eval.Expression, error) {
+	expr, err := p.findReservedKeyword(tkn)
+	switch {
+	case errors.Is(err, errNoReservedKeyword):
+	case err != nil:
+		return nil, err
+	case err == nil:
+		if _, ok := expr.(*eval.Call); !ok {
+			return nil, fmt.Errorf("expected function call, got %s", expr.String())
+		}
+		return expr, nil
+	}
+
+	result := &eval.Call{Name: tkn.Value}
 
 	for {
 		tkn, err := p.l.NextToken()
@@ -102,18 +123,18 @@ func (p *Parser) parseCall(tkn lexer.Token) (Expression, error) {
 
 		switch tkn.Type {
 		case lexer.Identifier:
-			result.Args = append(result.Args, &Identifier{Name: tkn.Value})
+			result.Args = append(result.Args, parseIdentifier(tkn.Value))
 		case lexer.Number:
 			f, err := strconv.ParseFloat(tkn.Value, 64)
 			if err != nil {
 				return nil, fmt.Errorf("parse number: %w", err)
 			}
-			result.Args = append(result.Args, &Number{Value: f})
+			result.Args = append(result.Args, &eval.Number{Value: f})
 		case lexer.RParen:
 			return result, nil
 		case lexer.LParen, lexer.SQuote:
 			p.l.UnreadToken()
-			expr, err := p.Parse()
+			expr, err := p.ParseNext()
 			if err != nil {
 				return nil, fmt.Errorf("parse expression: %w", err)
 			}

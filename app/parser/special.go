@@ -4,11 +4,12 @@ import (
 	"github.com/cappuccinotm/flangc/app/lexer"
 	"errors"
 	"fmt"
+	"github.com/cappuccinotm/flangc/app/eval"
 )
 
 var errNoReservedKeyword = errors.New("word is not reserved")
 
-func (p *Parser) findReservedKeyword(tkn lexer.Token) (expr Expression, err error) {
+func (p *Parser) findReservedKeyword(tkn lexer.Token) (expr eval.Expression, err error) {
 	switch tkn.Value {
 	case "func":
 		expr, err = p.parseFunc()
@@ -27,13 +28,14 @@ func (p *Parser) findReservedKeyword(tkn lexer.Token) (expr Expression, err erro
 }
 
 // (func name (args) (body))
-func (p *Parser) parseFunc() (Expression, error) {
+// func(name, [args], body(...))
+func (p *Parser) parseFunc() (eval.Expression, error) {
 	tkn, err := p.readAndValidateToken(lexer.Identifier)
 	if err != nil {
 		return nil, fmt.Errorf("expected identifier, got %s", tkn.Value)
 	}
 
-	result := &Call{Name: "func", Args: []Expression{&Identifier{Name: tkn.Value}}}
+	result := &eval.Call{Name: "func", Args: []eval.Expression{&eval.Identifier{Name: tkn.Value}}}
 
 	expr, err := p.parseTuple()
 	if err != nil {
@@ -64,8 +66,8 @@ func (p *Parser) parseFunc() (Expression, error) {
 }
 
 // (lambda (args) (body))
-func (p *Parser) parseLambda() (Expression, error) {
-	result := &Call{Name: "lambda", Args: nil}
+func (p *Parser) parseLambda() (eval.Expression, error) {
+	result := &eval.Call{Name: "lambda", Args: nil}
 
 	expr, err := p.parseTuple()
 	if err != nil {
@@ -97,8 +99,8 @@ func (p *Parser) parseLambda() (Expression, error) {
 }
 
 // (prog (scopevars) (statements))
-func (p *Parser) parseProg() (Expression, error) {
-	result := &Call{Name: "prog", Args: nil}
+func (p *Parser) parseProg() (eval.Expression, error) {
+	result := &eval.Call{Name: "prog", Args: nil}
 
 	expr, err := p.parseTuple()
 	if err != nil {
